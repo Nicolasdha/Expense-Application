@@ -1,0 +1,16 @@
+html{
+    font-size: 62.5%;
+}
+
+/* Since 1rem is 16px * .625 = 10px can work in bases of 10 so like 
+2.2rem would be 22px*/
+
+body {
+    background: seashell;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: $m-size; // 16px but dynamic for accessability
+}
+
+.is-active {
+    color:rgb(134, 136, 214)
+}
