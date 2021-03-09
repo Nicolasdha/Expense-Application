@@ -2271,9 +2271,10 @@ In edit expense we match the expense to edit by their id and pass it into expens
 ------------------ TESTING USER INTERACTION ==============
 ----------------- TESTING/CHECKING DIFFERENT STATE CHANGES WITH UI ---------
 
-Need to simulate UI in test cases for onSubmit/onChange handelers so need to simulate those events so if form submitted with bad data(no description and amount) expect the error gets set and rendered to screen
+Need to simulate UI in test cases for onSubmit/onChange handelers so need to simulate those events.
 
-Create a test case for this
+Create a test case if form submitted with bad data(no description and amount) expect the error gets set and rendered to screen: onSubmit test case example
+
 
 1) Create test case testing if error gets set
 2) Shallow render expense form
@@ -2290,11 +2291,159 @@ Create a test case for this
         -  expect(wrapper.state('error').length).toBeGreaterThan(0)
             - This will pass as long as there is an error message, so if the .simulate() call doesnt happen there will be an error since the error: property will still be an empty string which === 0
     D) Wrap up this with a snapshot to make sure that after the error state changes it gets rendered
-        - CAN EVEN ADD ANOTHER SNAPSHOT BEFORE .simulate() to make sure the error message is not showing up before the .simulate() is called
+        - CAN EVEN ADD ANOTHER SNAPSHOT BEFORE .simulate() to make sure the error message is not showing up before the .simulate() is called - so two snapshots in this test case
         
 
 
 
+Create a test case if description changes in the description input it actually does set the state.description to be that value : onChange test case example
+Need to render expense form, change descroption input and make assertion checking the description state was set
 
+1) Create test
+2) Shallow render component
+3) Access description's input with.find('input'), but need to match the first input using the .at() method passing in the index of the field you are testing, and then simulating a change in that input and passing in a mock event object as the second
+arugment to .simulate()
+    - The mock event object needs to have the same property structure as the real event obejct so when it is looking for the e.target.value it is able to grab the new text value
+
+    wrapper.find('input').at(0).simulate('change', {
+        target: {
+            value: 'test'
+        }
+    })
+
+    OR WITH DESTRUCTURING
+
+    const value = "New Description"
+    wrapper.find('input').at(0).simulate('change', {
+        target: { value }
+    })
+
+4) Then checking if that input with the simulated change does equal the state.description
+    expect(wrapper.state('description')).toBe('test')
+
+
+
+Creating a test case for changes to note textarea is the same but for .find('textarea')
+
+
+
+
+----- Creating test case for changes to amount -------
+
+We will have do two two test cases for this, one for something valid and one for something invalid so the .match() conditional logic is tested 
+
+The first one that changes the amount is the same as above but need to make sure we make the value that is being set a string instead of an integer since .match() takes a string as the argument and will thrown an error if gets an int
+
+The second you need to assign the variable value an INVALID number and check if the state does not change and is still an empty string
 
 */
+
+
+
+
+/*
+----------------- TEST SPIES AKA MOCKED FUNCTIONS ------------
+
+Goal is to create functions that are fake functions created by Jest (expect() docs ) that we can make assertions about, can see if it was called, if it was called 5 times, if it was called with specific arguments
+
+Spys allow us to create a function that we can then pass it into our component (or anything else) usually by setting it equal to the function call being handed down from a prop and then can make sure that when an event happens (like form submission) it was either called in general, called a certain number of times, or called with the correct data 
+
+
+- To create spy = jest.fn() = this is a function with no arguments that returns the new spy we just need to store it on a variable 
+    - able to create fake functions, pass into components and able to make sure theyre called as we expected them to be called
+
+test('should call onSubmit prop for valid form submission', () =>{
+    const onSubmitSpy = jest.fn();
+
+})
+
+- Once we have the spy we have access to a brand new set of assertions
+    - Assertion to check if spy was called - .toHaveBeenCalled();
+        expect(onSubmitSpy).toHaveBeenCalled(); // throw error if never called and fail test case and pass if it has been called
+
+
+Some methods - .toHaveBeenCalled/.toHaveBeenCalledWith/.toHaveBeenCalledLastWith 
+
+
+So these are what we need since we need to make sure the spy is called with the object with all of the formattted data when props.onSubmit() happens 
+
+onSubmitSpy('Nicolas','Denver')
+expect(onSubmitSpy).toHaveBeenCalledWith('Nicolas', 'Denver') // Pass
+expect(onSubmitSpy).toHaveBeenCalledWith('Nicolas') // Fail
+expect(onSubmitSpy).toHaveBeenCalledLastWith('Denver') // Pass
+
+
+
+
+
+
+------------------ CREATING TEST CASE FOR ONSUBMIT OF VALID DATA THAT IS DISPATCHED TO REDUX STORE ----
+
+First we need to render expense form with valid data from the fixtures/expenses, then simulate submit data, then check of state was cleared, then step 4 we need to make sure the props.onSubmit() was called with the object containing all of the correctly foramttted data 
+
+1) Create test
+2) Create spy 
+3) Shallow render ExpenseForm and pass in match={expense[0]} and then onSubmit
+    - Need to use match here to act like it is being edited so the values populate
+    - Need to define onSubmit in the props b/c when simulated onSubmit it calls the props.onSubmit() so we set it equal to our spy
+4) Simulate form submission passing in an object with preventDefault as a prop equal to empty function 
+5) Make assertion about what happened. What actually happened? State.error should equal empty string and the spy should have been called with specific arguments 
+    A) Expect state.error is an empty string: expect(wrapper.state('error')).toBe('')
+    B) Expect spy is called with is the object with the state values, not just called in general
+        - Cannot just do this expect(onSubmitSpy).toHaveBeenLastCalledWith(expenses[0]) , b/c this has the id value included and we cannot include this just in case it is being created for the first time from createExpense
+        - So can pass in an object with everything defined without the id
+        {
+        amount: expenses[0].amount,
+        description: expenses[0].description,
+        createdAt: expenses[0].createdAt,
+        note: expenses[0].note
+    }
+
+*/
+
+
+/**
+ 
+--------------------- CREATING TEST CASE FOR ONDATECHANGE / ONFOCUS CHANGE -----------
+
+These come with their own set of problems which is figuring out how to trigger these when theyre not set up with onSubmit/onChange handlers. Theyre set up by passing them down to <SingleDatePicker />. Need a way to trigger these and make them run, 
+
+How to access props off of chilren that our components render, this allows us to make sure that things are wired up correctly with the children and that the handeler actually does it job correctly 
+
+
+onDateChange: pass a moment() instance into createdAt and expect that it gets set on the state. 
+
+1) Create test
+2) Shallow render component with no props
+3) How we can trigger the prop from that child component of <SingleDatePicker />
+    - First need use .find() to find the instance/component- 'SingleDatePicker' is called 'withStyles(SingleDatePicker)' in react-dates V13 -- .find('withStyles(SingleDatePicker)')
+      - Need to get one of the component's props and call it - onDateChange
+    - Need to use a new method from Enzyme .prop([key])(for one prop) or .props() to read all props - let us read those prop values
+        .find('withStyles(SingleDatePicker)').prop('onDateChange')
+
+    - This will return the HANDELER we registered which is a function and you just call this function with whatever data it expects to be called with - which is a moment() instance for onDateChange . This set up is like connect()() which gives us back a function which we call something with
+
+        .find('withStyles(SingleDatePicker)').prop('onDateChange')(moment())
+
+4) Now we can actually make the assertion checking that the state was correctly set 
+    const now = moment();
+    expect(wrapper.state('createdAt')).toEqual(now)
+
+
+
+onFocusChange: makes sure that actually sets calanderFocused to focused. This can either be true/false, and start it at false. So need to start out by calling it with focused:true on the object that is passed in as the argument to make sure calanderFocused ends up with true 
+
+
+1) Same as above but with the line
+    wrapper.find('withStyles(SingleDatePicker)').prop('onDateChange')(now);
+
+    We need to change it to .prop('onFocusChange') and need to pass in an object with focused: true
+
+        wrapper.find('withStyles(SingleDatePicker)').prop('onFocusChange')({ focused:true });
+
+
+ */
+
+
+
+    /* WHEN TO USE JEST VS ENZYME */
