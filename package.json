@@ -19,7 +19,6 @@
     "@babel/runtime": "^7.0.0",
     "@webpack-cli/init": "^1.1.2",
     "babel-cli": "6.24.1",
-    "babel-core": "6.25.0",
     "babel-loader": "^8.2.2",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",

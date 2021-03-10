@@ -2687,19 +2687,36 @@ Need to first refactor and abstract the dispatch call away from the compoenent t
 
 What do we need to test? regular snapshot setStartDate, setEndDate, setTextFilter, sortByDatE, sortByAmount
 
-1) Named export nonconnected version of the component
-2) 
 
+1) The component expects some data so add a filters file to the fixtures and export two different sets of data, one that uses the default values and one that uses where we have some actual things set up
 
+2) Set up the beforeEach() looking at what the component needs, it references all of the this.props.actionGenerators so need to set those to a spy, and it references this.props.filter so need to pass in the default filters in as a prop set to baseFilter
+3) Set up the snapshots, the first is the easy one but second one is what if it has different data from the populatedFilter
+    - But some tests need the populatedFilter as the filter to make sure it can read and set data from the filter properties so need to create a test case to change the prop of filters={basefilter} to filters={populatedFilter}
+    - Enzyme gives us a way to do this with the method .setProps(nextProps) - using .setProps() we can manipulate the props for a given component and then assert something about it so need to call it on the wrapper and pass in the new props as an object 
+    expect(wrapper.setProps({filters: populatedFilter})).toMatchSnapshot();
+4) setTextFilter: simulate a change in the input field passing in a mock event object with the property value set to a string, and then assert that the setTextFilterSpy was called with that string
+5) sortByDate: simulate change in select field passing in a mock event object with the property value set to 'date', and then assert that the sortByDateSpy was called in general
+6) sortByAmount: simulate change in select field passing in a mock event object with the property value set to 'amount', and then assert that the sortByAmountSpy was called in general
+7) setStartDateSpy and setEndDateSpy: in one test create an object with startDate and endDate property set to moment() objects. Navigate to the DateRangePicker onDatesChange prop passing in the new date object, and then assert that the setStartDateSpy was called with the new startDate on that object passed in and setEndDateSpy was called using the endDate
+8) should handle date focus change: Need to trigger onFocusChange and make sure state was changes so need to pass in a calanderFocued value
+    - Navigate to the DateRangePicker onFocusChange prop passing in either 'startDate' or 'endDate' as a string NOT the actual moment() object ( easy to see in the docs for DateRangePicker what it needs 1 of three values null)
+    - Make an assertion about the calanderFocused property on the state that it is startDate or endDate which ever you passed in 
 
 
 */
 
 
+/*
+
+------------------- DEPLOYMENT OF APPLICATIONS ---------------------------
+
+1) Work with node.js and express library to create a production web server that serves up the production react application assets
+2) Learn to config webpack for production reeducing bundle size and speeding up app
+3) Use heroku delpoyment platform to deploy applications to production server live
 
 
 
 
 
-
-    /* WHEN TO USE JEST VS ENZYME */
+*/
