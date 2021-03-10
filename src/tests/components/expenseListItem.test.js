@@ -6,8 +6,6 @@ import expenses from '../fixtures/expenses'
 
 
 
-
-
 test('should render an ExpenseListItem ', () =>{
     const wrapper = shallow(<ExpenseListItem {...expenses[0]}/>)
 

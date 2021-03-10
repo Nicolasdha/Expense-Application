@@ -7,7 +7,6 @@ import ExpenseForm from '../../components/expenseForm';
 
 
 
-
 test('should render expense form', () =>{
     const wrapper = shallow(<ExpenseForm />)
 

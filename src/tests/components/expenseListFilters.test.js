@@ -6,8 +6,8 @@ import { baseFilter, populatedFilter } from '../fixtures/filters'
 import moment from 'moment';
 
 
-
 let setStartDateSpy, setEndDateSpy, setTextFilterSpy, sortByDateSpy, sortByAmountSpy, wrapper;
+
 
 beforeEach(()=>{
     setStartDateSpy = jest.fn();

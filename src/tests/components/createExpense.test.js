@@ -6,6 +6,7 @@ import expenses from '../fixtures/expenses'
 
 let addExpenseSpy, history, wrapper;
 
+
 beforeEach(()=>{
     addExpenseSpy = jest.fn();
     history = {push: jest.fn()};

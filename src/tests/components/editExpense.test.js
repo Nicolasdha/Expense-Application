@@ -20,6 +20,7 @@ beforeEach(()=>{
 });
 
 
+
 test('make sure edit expenses render correctly', () =>{
     expect(wrapper).toMatchSnapshot();
 });
