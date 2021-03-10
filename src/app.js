@@ -23,22 +23,6 @@ const unsubscribe = store.subscribe(() =>{
     console.log(visibleExpenses) 
 })
 
-
-
-const expenseOne = store.dispatch(addExpense({
-    description: 'Water Bill',
-    amount: 5000, 
-    createdAt: 1614892714616,
-    note: "Last water bill in dis piece"
-}));
-
-const expenseTwo = store.dispatch(addExpense({
-    description: 'Gas Bill',
-    amount: 25000, 
-    createdAt: 714616,
-}));
-
-
 const jsx = (
     <Provider store={store}>{AppRouter}</Provider> 
 );
