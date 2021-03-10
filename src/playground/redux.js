@@ -2716,7 +2716,29 @@ What do we need to test? regular snapshot setStartDate, setEndDate, setTextFilte
 3) Use heroku delpoyment platform to deploy applications to production server live
 
 
+-------------------- SETTING UP SSH FOR GITHUB -------------
 
+Run the command to see if you have keys already in root project dir 
 
+ls -a ~/.ssh 
+If no file need to gen the ssh so run the command
 
+ssh-keygen -t rsa -b 4096 -C "sankp001@gmail.com"
+
+save to auto gened folder, no password
+
+Run: ls -a ~/.ssh  again to see that they generated the id_rsa is the private key file and the id_rsa.pub is thepublic file to share with github and other services
+
+The ~ is shorthand for the user directory 
+
+Now the next cmnd makes sure that when we try to communicate with other srevices like github it actually knows which ssh keys to use. This requires us to use a tool called sshAgent,first thing is to make sure it is running 
+1) eval "$(ssh-agent -s)"  : check if ssh agent is running and if not itll start it 
+2) Acutally add the key using:  ssh-add and then add the path to the private key file . Not the pub file
+    ssh-add ~/.ssh/id_rsa
+3) Now can see that the identity has been added and can take the public key file and give it to 3rd party services like github. So need to take the contents of the id_rsa.pub file and copy to clipboard so we need to 
+        pbcopy < ~/.ssh/id_rsa.pub
+4) Now need to actually give it to github, by going to github going to settings, SSH and GPG keys and pasting they key in the new ssh textarea
+5) Run test cmnd to make sure it was set up correctly
+    - In terminal run : ssh -T git@github.com      and then type yes
+6) 
 */
