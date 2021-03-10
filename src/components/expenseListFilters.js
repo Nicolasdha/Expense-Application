@@ -8,14 +8,14 @@ import 'react-dates/initialize';
 
 
 
-class ExpenseListFilters extends React.Component {
+export class ExpenseListFilters extends React.Component {
     state = {
         calanderFocused: null,
     };
 
     onDatesChange =({ startDate, endDate }) => {
-        this.props.dispatch(setStartDate(startDate));
-        this.props.dispatch(setEndDate(endDate));
+        this.props.setStartDate(startDate);
+        this.props.setEndDate(endDate);
     }
 
     onFocusChange = (newCalanderFocused) => {
@@ -30,7 +30,7 @@ class ExpenseListFilters extends React.Component {
                 type='text'
                 value={this.props.filters.text}
                 onChange={(e) =>{
-                    this.props.dispatch(setTextFilter(e.target.value))
+                    this.props.setTextFilter(e.target.value)
                 }
             }/>
             <label htmlFor="sortBy" >Sort By</label>
@@ -39,9 +39,9 @@ class ExpenseListFilters extends React.Component {
                     value={this.props.filters.sortBy} 
                     onChange={(e) => {
                         if(e.target.value==="date"){
-                            this.props.dispatch(sortByDate());
+                            this.props.sortByDate();
                         } else if (e.target.value==="amount"){
-                            this.props.dispatch(sortByAmount());
+                            this.props.sortByAmount();
                         }
                     }
                 }>
@@ -75,4 +75,13 @@ const mapStoreToProps = (state) =>{
     }
 };
 
-export default connect(mapStoreToProps)(ExpenseListFilters);
+const mapDispatchToProps = (dispatch) =>({
+    setStartDate: (startDate) => dispatch(setStartDate(startDate)),
+    setEndDate: (endDate) => dispatch(setEndDate(endDate)),
+    setTextFilter: (textValue) => dispatch(setTextFilter(textValue)),
+    sortByDate: () => dispatch(sortByDate()),
+    sortByAmount: () => dispatch(sortByAmount())
+
+})
+
+export default connect(mapStoreToProps, mapDispatchToProps)(ExpenseListFilters);

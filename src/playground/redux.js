@@ -2446,4 +2446,260 @@ onFocusChange: makes sure that actually sets calanderFocused to focused. This ca
 
 
 
+/*
+
+---------------- CREATING TEST FOR CREATE EXPENSE -----------------
+
+
+
+---------------- mapDispatchToProps and REFACTORING CREATEEXPENSE -----------------
+
+mapDispatchToProps is a function given by connect(). It is a way to return the dispatcher functions allowing you to abstract them away from the component themselves 
+
+            onSubmit = {(expense) => { 
+                props.dispatch(addExpense(expense))
+                props.history.push('/')
+
+ Above the .dispatch could easily be a spy: could take the unconnected component, shallow render, pass in spy and make sure it gets called 
+
+ But addExpense(expense) action generator is a little bit trickier since we are referencing an imported  function not something that is passed in from props which make it harder to test than it need to be, but there is a function we can define in connect() that allows us to do this. 
+
+ connect(): 
+ 1) The first function passed in as argument is mapStateToProps
+    - to connect the store/state to props so can access
+    - if we do not want to use this function we have to claim it as undefined as the first argument
+ 2) The second function passed in as argument is mapDispatchToProps 
+    - similar to above but instead of state it works with dispatch
+    - this gets called with dispatch as the argument so have access to use dispatch inside of function, and goal is to return an object where we define various props that will call dispatch so we can actually abstract away props.disptch(addExpense(expense)) with props.addExpense(expense); which is MUCH easier to test than the dispatch call 
+
+To refactor to props.addExpense(expense); we need to set up the mapDispatchToProps function and define it in the object that is returned by that function 
+
+1) return object with addExpense as property set to an arrow function which has the action generator inside of it
+2) pass in the expense as the argument
+3) dispatch is passed in by connect() so we have access to it so we call dispatch, and set up a call to action generator addExpense passing in the expense to action generator addExpense as argument
+
+
+Now have the exact same functionality but we just have a new component that is A LOT more testable
+
+    const mapDispatchToProps = (dispatch) =>{
+        return {
+            addExpense: (expense) =>{
+                return dispatch(addExpense(expense))
+            }
+        }
+    }
+
+    REFACTORED:
+
+const CreateExpensePage = (props) => (
+    <div>
+        <h1>Add Expense</h1>
+        <ExpenseForm
+            onSubmit = {(expense) => { 
+                props.addExpense(expense);
+                props.history.push('/');
+            }}
+        />
+    </div>
+);
+
+const mapDispatchToProps = (dispatch) => ({
+    addExpense: (expense) => dispatch(addExpense(expense))
+})
+
+export default connect(undefined, mapDispatchToProps)(CreateExpensePage)
+
+
+THEN since has an inline function onSubmit, we can convert this to a class based component to be able to create methods and write cleaner code
+
+
+class CreateExpensePage extends React.Component {
+    onSubmit = (expense) => { 
+        this.props.addExpense(expense);
+        this.props.history.push('/');
+    };
+    render(){
+        return (
+            <div>
+                <h1>Add Expense</h1>
+                <ExpenseForm onSubmit = {this.onSubmit}/>
+            </div>
+        );
+    };
+};
+const mapDispatchToProps = (dispatch) => ({
+    addExpense: (expense) => dispatch(addExpense(expense))
+})
+export default connect(undefined, mapDispatchToProps)(CreateExpensePage)
+
+
+NOW since we always want to test the unconnected version of the components we need to export CreateExpensePage as a named export to use in our testing cases:
+
+export class CreateExpensePage extends React.Component {
+
+<---------------------- TESTING createExpense --------------->
+
+To Test createExpense unconnected component to make sure it renders correcty
+1) Create test case
+2) Create spies
+    A) const onSubmit = jest.fn();
+    B) History is an object with the property push on it that gets called so we set the hisotry spy equal to an object with the push property that is set to the spy
+        const history = { push: jest.fn() };  -- to access spy is history.push
+3) Shallow render with the props that it needs which is the onSubmit() that the CreateExpense component calls in its onSubmit() call, and history which the CreateExpense component calls in its onSubmit() call
+4) Make snapshot assertion to make sure always gets the props it needs
+
+
+
+To Test createExpense unconnected component to make sure it handles onSubmit correctly
+
+1) create file, and import everything
+2) create test case
+3) Create spies
+    A) const addExpense = jest.fn();
+    B) History is an object with the property push on it that gets called so we set the hisotry spy equal to an object with the push property that is set to the spy
+        const history = { push: jest.fn() };  -- to access spy is history.push
+4) Shallow render with the props that it needs which is the onSubmit() that the CreateExpense component calls in its onSubmit() call, and history which the CreateExpense component calls in its onSubmit() call
+    - pass those in and we put spies in as those values to make sure theyre called 
+5) In the test case we need to actually call the function onSubmit() that gets passed into <ExpenseForm /> that is set equal to the method onSubmit() that we created. Test the original call of the function and pass the spy in as the method that we created
+    - so .find() expenseForm and access the prop we are interested in which is the prop onSubmit that is passed into <ExpenseForm onSubmit={this.onSubmit}/> NOT the method this.onSubmit using .prop('onSubmit')
+    - And then what is returned from .prop('onSubmit') is the actual prop function, so we just chain on a function call calling it with the data that it would normally be called with which is an expense object
+        - NO NEED TO .SIMULATE() SINCE A FUNCITON IS BEING PASSED BACK from .prop()
+6) Now we have called the this.onSubmit() method that lives on the CreateExpense object with the correct inforamtion (expense object)
+7) Need to make assertions about the spies and whether they have been called with the correct information
+    <CreateExpensePage onSubmit={addExpenseSpy} history={history} />
+8) Make assertion about history and if it was called with '/' to take them back to home page. Need to access the history spy which is on history.push
+    - Now if redirect to a wrong page the spies will fail b/c not called with the correct data 
+        expect(history.push).toHaveBeenLastCalledWith('/');
+
+9) Make assertion about addExpenseSpy and if it was called with the correct expense object 
+
+
+
+In the createExpense test the first three lines are the same since they are just setting up the test, and not making different assertions about the test itself. SO in some of the test cases we find that we spend a lot of time building up the test case, rather than actually writing assertions. So if there is a lot of duplicate code, JEST provides a way to create a single version of this with Jest Globals
+
+
+--------------------  JEST GLOBALS and LIFECYCLE METHODS --------------
+No need to import method/object anything as they are in the global environment
+
+
+1) afterAll(fn): runs a single time after test cases in a given file complete
+2) afterEach(fn): runs a every time after each test case completes in a given file complete
+3) beforeAll(fn): runs a single time before test cases in a given file complete
+4) beforeEach(fn): runs a every time before each test case completes in a given file complete
+
+Using some of these lifecycle methods we are going to be able to set up the spies and component and then each test case can just worry about using those and set them up every time before 
+
+So to do this:
+1) Create let for each thing you are reusing: let onSubmitSpy, history, wrapper
+2) Want to define each variable with fresh copies before every single test case so each test case starts with spies that have not been called and a virgin wrapper
+    A) Using beforeEach(fn) we can do this to run some code before each. It takes a callback function, and in that CB we just redefine each variable 
+        beforeEach(()=>{
+                 addExpenseSpy = jest.fn();
+                 history = { push: jest.fn()};
+                 wrapper = shallow(<CreateExpensePage onSubmit={addExpenseSpy} history={history} />);
+
+        })
+3) Now can remove those three lines from each of the test cases! 
+
+
+
+<---------------------- REFACTORING  editExpense --------------->
+
+
+Need to refactor the action generator calls to be able to test easier, and make the actual componenet a class based component and not a stateless functional component to be able to assign methods to it and pull out the inline methods for cleaner code
+
+1) Set up the render(){(<div>...)} with all of the visible output
+2) Set up the methods and reference them where they used to be inline on the event listeners
+3) This needs a variable match to match the correct expense to auto fill the inputs with that expenses information, so we need to change the mapStoreToProps function as we are only using the store/state in the match computation, so set a key as match and the value as to the .find() computation from earlier and passing in props as the second argument to be able to use the match.id that was passed in as a prop
+4) Change ALL useages of props to this.props in the component
+5) Define a new function below the component mapDispatchToProps to be able to abstract the dispatch calls away from the event listeners for submit/click
+    - Pass in dispatch as the argument
+    - implicityly return an object with two properties on it
+        1) editExpense: set this equal to a function passing in the nessesary information to dispatch editExpense which is the id of the expense and the expense object with all the new info on it. Then in the function body return what comes back from calling dispatch and passing in the actual action generator editExpense passing in the id and expense object that we got from the parent function
+        2) removeExpense: set this equal to a function passing in what it needs to dispatch removeExpense with is an object with the id property on it set to the id of the expense you are trying to remove. Then set the function body equal to what returns when dispach is called passing in the removeExpense action generator passing in the id that was passed down from where it is defined on onRemove()
+6) Refactor the code above
+    FROM:
+        props.dispatch(editExpense(match.id, expense))
+    TO:
+        this.props.editExpense(this.match.id, expense) or props.editExpense(this.match.id, expense)
+
+
+    FROM: 
+        props.dispatch(removeExpense( {id: match.id} ))
+    TO:
+        this.props.removeExpense( {id: this.match.id} ) or props.removeExpense( {id: this.match.id} )
+
+7) Change the default export passing in the new function as the SECOND argument to connect()
+    export default connect(mapStoreToProps, mapDispatchToProps)(EditExpensePage);
+
+
+
+
+
+
+<---------------------- TESTING editExpense --------------->
+
+1) Create file, import evething
+2) Create a beforeEach() to set up the test case for all assertions and declare the variables we want to use editExpenseSpy, history, removeExpenseSpy, wrapper
+    A) In the beforeEach() function assign a spy to edit/removeExpenseSpy and an object with key as push and value as the spy on history to mock the actual history object
+    B) Shallow render <EditExpensePage/> passing in all of the props it needs
+        1) editExpense={editExpenseSpy} 
+        2)removeExpense={removeExpenseSpy}
+        3) history = {history}
+        4) match={expenses[0]}
+        
+        These values are passed into <EditExpensePage/> as props that it needs to render correctly
+3) Do a .matchToSnapshot(); one
+4) Need a case to make sure editExpense is being dispatched correctly. Need to trigger onSubmit on the ExpenseForm that should run onSubmit that will use a spy to make sure it was ran with the correct info
+    A) .find('ExpenseForm') and access onSubmit prop with .prop('onSubmit') and call what comes back from that by chaining a function call on -> () and need to call it with the same stuff it gets called with in the real use which is just an expense. Need to use the exact same expense as the match prop was set equal to 
+    B) Make assertion about history.push spy to make sure .toHaveBeenLastCalledWith('/')
+    C) Make assertion about editExpenseSpy .toHaveBeenLastCalledWith(expense[0].id, expense[0]) which is the same expense match was set to
+5) Need a case to make sure removeExpense is being dispatched correctly. Need to trigger onClick on the button  that should run onRemove that will use a spy to make sure it was ran with the correct info
+    A) .find('button') and .simulate('click')
+    B) Make assertion about history.push spy to make sure .toHaveBeenLastCalledWith('/')
+    C) Make assertion about removeExpenseSpy .toHaveBeenLastCalledWith({id:expense[0].id}) 
+
+
+
+*/
+
+
+/*
+
+
+---------------- Refactoring expenseListFIlters componetn --------
+
+Need to first refactor and abstract the dispatch call away from the compoenent to be able to test it easier 
+
+1) Refactor all uses of dispatch into the new function creaated mapDispatchToProps and then just reference the property key when calling each dispatch call
+
+
+
+
+
+
+
+
+
+
+-------------------- CREATING TEST CASE FOR expenseListFilters COMPOENENT -------
+
+
+What do we need to test? regular snapshot setStartDate, setEndDate, setTextFilter, sortByDatE, sortByAmount
+
+1) Named export nonconnected version of the component
+2) 
+
+
+
+
+*/
+
+
+
+
+
+
+
+
     /* WHEN TO USE JEST VS ENZYME */
