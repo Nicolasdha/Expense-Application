@@ -69,34 +69,57 @@ Need sass-loader node-sass but only need to put sass loader in the use: array in
  */
 
 const path = require('path');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CSSExtract = new MiniCssExtractPlugin({ filename: "styles.css" });
 
-module.exports = {
-    entry: './src/app.js',
-    output: {
-    // needs two things: path and filename
-    path: path.join(__dirname, 'public'),
-    filename: 'bundle.js'
-    },
-    module: {
-        rules: [{
-            loader: 'babel-loader',
-            test: /\.js$/,
-            exclude:/node_modules/
-        }, {
-            test: /\.s?css$/,
-            use: [
-                'style-loader',
-                'css-loader',
-                'sass-loader'
-            ]
-        }]
-    },
-    // This is for source mapping 
-    devtool: 'eval-cheap-module-source-map',
-    devServer: {
-        contentBase: path.join(__dirname, 'public'),
-        historyApiFallback: true
-    },
+
+module.exports = (env) =>{
+    console.log('env', env)
+
+    const isProduction = (env.production === true );
+    
+    return {
+        entry: './src/app.js',
+        output: {
+        // needs two things: path and filename
+            path: path.join(__dirname, 'public'),
+            filename: 'bundle.js'
+        },
+        module: {
+            rules: [{
+                loader: 'babel-loader',
+                test: /\.js$/,
+                exclude:/node_modules/
+            }, {
+                test: /\.s?css$/,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            sourceMap: true
+                        }
+                    },
+                    {
+                        loader: 'sass-loader',
+                        options: {
+                            sourceMap: true
+                        }
+                    }
+                ]
+            }]
+        },    
+        plugins: [
+            CSSExtract
+          ],
+        // This is for source mapping 
+        devtool: isProduction ? 'source-map' :'inline-source-map',
+        mode: isProduction ? 'production' : 'development',
+        devServer: {
+            contentBase: path.join(__dirname, 'public'),
+            historyApiFallback: true
+        },
+    };
 };
 
 

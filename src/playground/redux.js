@@ -2740,5 +2740,173 @@ Now the next cmnd makes sure that when we try to communicate with other srevices
 4) Now need to actually give it to github, by going to github going to settings, SSH and GPG keys and pasting they key in the new ssh textarea
 5) Run test cmnd to make sure it was set up correctly
     - In terminal run : ssh -T git@github.com      and then type yes
-6) 
+
+
+
+
+
+------------------------ SETTING UP WEBPACK PRODUCTION BUILD ---------
+
+Can issue the yarn run build cmnd to see that our current development build is around 7 MBs which is crazy big. Almost all of this is source maps, so need to optimize things for production. 
+
+Since we are getting a message that bundle.js is larger than reccomended for production we are going to try to get as much stuff outside of bundle.js and into other files that can optionally load.
+
+1) Figure out how to run webpack in production mode. In docs/guides/production. Here we see that if we issue the webpack -p  cmnd it minifies all JS code and tells the otheer code to prepare itself for producstion, which libraries like React load some extra stuff for development purposes, but when we run this cmnd we are setting the NODE_ENV = "'production" that is going to signal to those 3rd party libs to load the most barebones version possible 
+    A) In package.json we change     
+    "build": "webpack"  to     "build:dev": "webpack",
+
+    And create a new script for production":
+    "build:prod": "webpack --mode=production",
+
+2) Need to actually change the contents of the webpack.config file whether we are running in dev or prod mode 
+    - The goal is to make a variable isProduction to use to determine what values to set down below. To do this we need a seperate way to setup the webpack.config file. Instead of exporting an object we need to export a function. In webpack.config.js we can choose to either export an object or a function that returns an object. The advantage of this is that the function actually gets called with some arguments:
+        - env: the environment
+
+    FROM: 
+module.exports = {
+    entry: './src/app.js',
+    output: {
+    // needs two things: path and filename
+    path: path.join(__dirname, 'public'),
+    filename: 'bundle.js'
+    },
+    module: {
+        rules: [{
+            loader: 'babel-loader',
+            test: /\.js$/,
+            exclude:/node_modules/
+        }, {
+            test: /\.s?css$/,
+            use: [
+                'style-loader',
+                'css-loader',
+                'sass-loader'
+            ]
+        }]
+    },
+    // This is for source mapping 
+    devtool: 'eval-cheap-module-source-map',
+    devServer: {
+        contentBase: path.join(__dirname, 'public'),
+        historyApiFallback: true
+    },
+};
+
+
+TO:
+
+module.exports = (env) =>{
+    return {
+        entry: './src/app.js',
+        output: {
+        // needs two things: path and filename
+        path: path.join(__dirname, 'public'),
+        filename: 'bundle.js'
+        },
+        module: {
+            rules: [{
+                loader: 'babel-loader',
+                test: /\.js$/,
+                exclude:/node_modules/
+            }, {
+                test: /\.s?css$/,
+                use: [
+                    'style-loader',
+                    'css-loader',
+                    'sass-loader'
+                ]
+            }]
+        },
+        // This is for source mapping 
+        devtool: 'eval-cheap-module-source-map',
+        devServer: {
+            contentBase: path.join(__dirname, 'public'),
+            historyApiFallback: true
+        },
+    }
+}
+
+
+3) We need to modify the production build call to pass in a variable to be able to access that variable in the webpack.config file to be able to conditional run a different type of source mapping. This is taking up 90% of the space when we are production compiling. The new source map 'source-map' takes a lot more time to build and it is an external file, which is great for production b/c unless someone opens the developer tool it will NOT get loaded. For regular users the browser will never make a request for this file
+
+
+    So we are going to change the script to:
+    webpack --env production
+
+    With the --env flag. We are able to access the production property which will be set to true on the env object. So in the top of the webpack.config file we can put:
+        const isProduction = (env.production === true );
+
+    And below use different source maps depending on if this value is true or not
+            devtool: isProduction ? 'source-map' :'eval-cheap-module-source-map',
+
+    Can go one more step and add a mode: property so we know which mode we will be using:
+            mode: isProduction ? 'production' : 'development',
+
+
+
+
+Now it is out putting two files, bundle.js (actual app file ) and bundle.js.map (which is 90% of the file size)
+
+
+-------------------- HOW TO BREAK OUR CSS OUT OF THE BUNDLE FILE INTO OUR OWN STYLES FILE -------------
+
+As of now all css styles live inside bundle.js so it is bigger than it needs to be, and if we have styles here the styles will not get added to the browser until after the javascript runs which takes some time.
+
+So going to have webpack output a javascript file and a seperate css file and then link it into index.html
+
+Still need to import these things to let webpack know what styles we want to run in the app:
+import 'normalize.css/normalize.css'; // css reset
+import './styles/styles.scss'; // used to import CSS
+import 'react-dates/lib/css/_datepicker.css';
+
+BUT when webpack does run, it is going to take all of those styles and pull them out into a seperate file 
+
+
+Need to use a webpack plug-in to get this done: extract text webpack plugin
+
+This allows to extract text out of bundle.js, which text? The text that matches the module.text regex in the webpack.config.js /\.s?css$/
+
+So every time you see a css or scss file process it then take the text and instead of including it inline, dump it to a seperate file 
+
+yarn add -D mini-css-extract-plugin (the -D will install this as a devDependency which are dependencies needed in the development workflow but not while running the code, a direct dependeny is like React and devDep is like this with babel)
+
+In webpack.config.js:
+
+1) Require the new plug in the beginning of the file before the function
+    const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+2) Make a new instance of MiniCssExtractPlugin for the styles that we are extracting. It takes one argument in the instance is the name of the file in an object with filename as a propety. styles will be the name
+    const CSSExtract = new MiniCssExtractPlugin({ filename: "styles.css" });
+3) Replace 'style-loader' in the use array with: MiniCssExtractPlugin.loader
+    - Not using style-loader b/c this handled the inlining of the styles which we are not doing any more since we are breaking them out to own file 
+use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"] 
+
+4) Need to pass CSSExtract into a plugins array that lives on the root object not within the module object
+    plugins: [
+      CSSExtract
+    ],
+
+5) Test work by running yarn run build:prod to make sure you get a seperate styles.css file
+
+6) IMPORTANT!!! Then Need to add the link tag in index.html to actually load the styles.css file, and that makes sure that the styles load before the JS
+
+7) Run live server to make sure last compilied bundle is serving the .css file correclty
+
+8) Need to set up the source maps for the css. The mapping works only for the production build but for the development builds or dev-server it would not work as expected. to test this we can delete all JS and CSS from the public folder and run the dev-server so those files get generated in the development build. Then looking at a style in the dev console you will see that all the css is being dumped into one file (which is fine) but the source maps arent showing the original place where these styles came from which makes things a whole lot more useful. Need to tweak use array on rules array in webpack config and type of source map for dev.  Failing in development b/c type of source mapping used in development (eval-cheap-module-source-map). Source maps have bugs that are very hard to track down, but this is one that works for andrew 
+
+    A) change eval-cheap-module-source-map to 'inline-source-map'
+    B) Need to enable source mapping for css-loader and sass-loader. Google css loader to see options that we have for it. One is sourceMap. To enable source mapping for the css-loader we go to it in the webpack.config file and reaplce 'css-loader' with an object
+    {
+        loader: 'css-loader',
+        options:{
+            sourceMap: true
+        }
+    }
+
+    C) Now need to enable source mapping for the scss-loader as well doing the same thing
+
+
+WHENEVER USING THIRD PARTY WEBPACK PLUGINS MOST LIKLEY GOING TO HAVE YOU ADD SOMETHING TO THE PLUGINS ARRAY. The plugins array is where you can set up all of the plugins that should have access to change and work with the existing webpack build 
+
+
+
 */
