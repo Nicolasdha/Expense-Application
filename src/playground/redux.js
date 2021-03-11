@@ -2904,6 +2904,7 @@ use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"]
 
     C) Now need to enable source mapping for the scss-loader as well doing the same thing
 
+    Now have a more development friendly build for styles.css source maps. Can see this in action by looking at the date picker styles it is coming from the datepicker.css file and not from one styles file with everything in it
 
 WHENEVER USING THIRD PARTY WEBPACK PLUGINS MOST LIKLEY GOING TO HAVE YOU ADD SOMETHING TO THE PLUGINS ARRAY. The plugins array is where you can set up all of the plugins that should have access to change and work with the existing webpack build 
 
