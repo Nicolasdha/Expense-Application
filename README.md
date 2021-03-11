@@ -13,24 +13,36 @@ Hello! This application is meant to help track your daily, monthly, and yearly e
 
 
 ## Table of Contents
-  * <a href= https://github.com/Nicolasdha/Expense-Application-React/Redux#Technologies>Technologies</a>
-  * <a href= https://github.com/Nicolasdha/Expense-Application-React/Redux#Launch>Launch</a>
-  * <a href= https://github.com/Nicolasdha/Expense-Application-React/Redux#Structure> Structure</a>
+  * <a href= https://github.com/Nicolasdha/Expense-Application-React-Redux#Technologies>Technologies</a>
+  * <a href= https://github.com/Nicolasdha/Expense-Application-React-Redux#Launch>Launch</a>
+  * <a href= https://github.com/Nicolasdha/Expense-Application-React-Redux#Structure> Structure</a>
   
   
 ### Technologies
 This application was created using the following technologies:
 
-* React
+Languages:
+* Javascript
+* SCSS/CSS
+
+Frameworks/Utilities:
+* React^17.0.1
 * Redux
 * Express
-* Google Firebase
-* Webpack
-* Bable
 * Jest
 * Enzyme
-* SCSS
+
+Compilers/Bundlers:
+* Webpack
+* Bable
+
+Platforms:
 * Heroku
+* Google Firebase
+
+Third-Party Libraries:
+* Moment
+* React-Dates
 
 
 ### Launch
@@ -46,4 +58,5 @@ Please feel free to use this application on all mobile devices as well, it is co
 
 
 Thank you for visiting! <br><br><br>
-![Logo](https://i.ibb.co/nr2trL4/Screen-Shot-2020-09-08-at-4-20-44-PM.png)
+
+<!-- ![Logo](https://i.ibb.co/nr2trL4/Screen-Shot-2020-09-08-at-4-20-44-PM.png) -->
