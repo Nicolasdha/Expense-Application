@@ -2911,3 +2911,56 @@ WHENEVER USING THIRD PARTY WEBPACK PLUGINS MOST LIKLEY GOING TO HAVE YOU ADD SOM
 
 
 */
+
+
+/*
+
+--------------------- CREATING PRODUCTION SERVER WITH EXPRESS -----------------
+
+None of the servers we have been using are suitable for production, b/c comes with a lot of stuff that is not needed for production that is taking up resoucres. So create a very simple express server with node.js
+
+Express is a great tool to create servers with node, but is also a very large tool. We un it form the command line using the node terminal command
+
+1) Create a new root dir - server and new file server.js
+2) Install express in our project yarn add express
+3) Load in express and create a new express application in the server.js file
+    A) const express require('express');
+        - Now the express library is in the file
+        - require is the node way of importing something
+
+    B) Create a new instance of express: const app = express();
+        - No arguments, have an express application now
+        -Customize the application by telling it where the files live and what port it should listen on  
+4) Tell it to serve up the public folder and everything inside
+    A) app.use(); is one way we can customize our express servers and will be suing this to register some middleware 
+        - middleware = something that runs for each request so if somone makes a request to the server you might want to log something to the screen, or if a request is made we might want to run some code to serve up that asset from the public directory. All this is built in express so just need to use express.static()
+    B) app.use(express.static()); - here we are taking the return value from express.static() and passing in to app.use()
+        a) Static takes an argumnet, the path to the public folder so make a const holding it while taking advantage of the path module that we took advantage of with path.join in webpack.config which allow us to join the dir in webpack to the public dir. So need to load in path to use it with require, and then use path.join(), the first arugment will be the current directory __dirname, and the second will be the next part of the path (path.join puts all of the path pieces together) so we go up a folder and then another arugment into the public folder '..', 'public'
+        const path = require('path')
+        const publicPath = path.join(__dirname, '..', 'public')
+        app.use(express.static(publicPath))
+
+        Now have an express application that will serve up all assets from that dir
+5) Actually need to start up the server so do that with app.listen(); when we do listen we need to listen on a specific port. port 3000 which everyone has and can attach to for development purposes without getting warning from operating system. 
+    A) first arugment is the port, and the second is a CB function that will be called when the server is actually up
+        app.listen(3000, () =>{ console.log('Server is up')})
+6) Start things up by running node allowing us to run a node script file in the CL
+    - will need to production assets built using yarn run build:prod first
+        node server/server.js
+7) IF at create expense page and refresh we get an error: 404 Cannot GET /create. B/c there is no /create file or folder inside public so we need to serve up index.html for all files that do not have a match to make sure our browser router still works. This is something that we did for the dev-server, in webpack.config we set the property           historyApiFallback: true, this served up index.html in the public folder everytime we got a 404 message, so just need to do the same thing in server.js to make sure everything works when directly visit it.
+    A) Add a single call to app.get() - this lets us set up some function to run when someone makes a function request to our server. In our case we need to call this with two arguments:
+        1) The first is the path. In a regular application maybe /create or /help but we are going to use the asterix * to match ALL unmatched routes. SO if it is in the public folder, great, if not we are going to serve up the same thing everysingle time.
+        2) The second argumnet is a function to run. In the function we are going to be handeling all of the unprocessed requests and we just need to send back the index.html file in the public dir. This function gets called by express with two arguments:
+            1) Request object (req): the request object contains info about the request 
+            2) Response object (res): the response object lets you manipulate the response the express server makes to whoever makes the HTTP request. In our case we just want to use a single method res.sendFile(path.join(publicPath, 'index.html')). This allows us to send the file that is found at the path passed into the method back to user. We passed the publicPath variable in and joined it with index.html
+ */
+
+
+
+/*
+
+--------- DEPLOYING ONTO HEROKU ------
+
+
+
+*/
