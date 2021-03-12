@@ -2961,6 +2961,39 @@ Express is a great tool to create servers with node, but is also a very large to
 
 --------- DEPLOYING ONTO HEROKU ------
 
+Same as AWSBeanstalk and digitalOcean 
+
+Need to install heroku CLI (already have)
+
+1) Need to authenticate with Heroku so use CL: heroku login
+2) Create Heroku app using: heroku create overhead-expense
+    - if run with no argumnet it gens a name but if provide a name it will call it that
+    - this set up the project on Heroku and add a new git remote to connect to heroku 
+
+Need to make a changes to application to let heroku know what to do, right now it doesnt know how so we need to
+
+1) How to actually run the node server: create start script
+    - When heroku starts up applicaiton it is going to try and run the start script in package.json, so we need to make one that exlicitly says go to server/server.js and run through node 
+    "start": "node server/server.js"
+
+2) Make change to server.js b/c currecntly we are listening on a static port of 3000, this is ok for local dev but wont work on heroku, heroku will provide a dynamic value to the application, not a static valuable you type in . Heroku proviudes you with an environment variable (can change everytime you run code) so we need to read off of something
+    A) Create a const port and get value from process.env.PORT
+        - PORT is the environment variable that heroku auto sets
+        - so IF this PORT variable exists that means we are on heroku and want to use the const port but if not we can default to 3000 for local by using logical OR operator ||
+
+        const port = process.env.PORT || 3000 
+    B) switch out 3000 with the port variable in app.listen()
+
+3) Need to teach Heroku how to run Webpack. We added node_modules to .gitignore so it isnt in repo since it is a generated file, the bundle/bundleMAP/styles/stylesMAP in piblic are generated too when we run webpack and not need to commit them to repo SO need to teach heroku to run webpack b/c they might not be there. 
+    A) There are custom scripts heroku looks for and runs as app starts
+        1) "heroku-postbuild": runs after heroku installs all dependencies, great place to run cmnds to build the proj with webpack/grunt/gulp. Here we just want to run the build:prod command so value is just the CL code - yarn run build:prod
+            "heroku-postbuild": "yarn run build:prod"
+        2) "heroku-prebuild": runs before dependancies get installed, dont find too useful so NOT using
+    B) Add those files to .gitignore b/c change all the time
+        public/bundle.js
+        public/bundle.js.map
+        public/styles.css
+        public/styles.css.map
 
 
 */
