@@ -2995,5 +2995,67 @@ Need to make a changes to application to let heroku know what to do, right now i
         public/styles.css
         public/styles.css.map
 
+4) Now commit and push to git and heroku
+    git push
+    git push heroku master 
+
+heroku open // opens webpage
+heroku logs // gives error messages from heroku is debug and for stack traces
 
 */
+
+
+
+/**
+ 
+--------------------------REGULAR VS DEV DEPENDANCIES -------------
+
+All of the depencies in packack.json are getting installed on heroku when it is not using all of them eg. enzyme, live-server, etc
+
+So we can create two sections of dependancies:
+1) Dependancies which will get installed locally and on Heroku
+1) Dev Dependancies which will only get installed locally
+
+
+Download chalk (a way to color the output in the CLI) as a dev dependancy using the -d flag, 
+yarn add --dev chalk 
+
+Now move the following dependancies to dev deps, deps that are not needed in production
+
+enzyme
+enzyme adapter 
+jest
+live-server ( can even remove serve script)
+react-test-render
+webpack dev server
+
+Question is how do we install one or the other?
+1) Delete node_modules
+2) yarn install --production 
+    - this tells yarn to leave off the dev deps - this is exactly what is running on heroku
+3) yarn install
+    - We want dev deps locally so this will install all dev deps too 
+
+Now slightly smaller build processes, a bit faster
+
+In the public dir we take the four compiled assets and theyre not in a folder, going to make a dist folder b/c not ideal, a bit easy to manage 
+
+Need to make tweaks to webpack.config b/c need to change where files get dumped and to index.html 
+
+1) Change index.html, change script import from /bundle.js TO: /dist/bundle.js, and the same thing with the styles
+
+2) Change webpack, the output path tells webpack where to dump all assets so add on a third argument to path.join(__dirname, 'public','dist')
+    - webpack will create dist as it add assets to that folder
+
+3) Since we are changing where the assets end up we need to tweak the webserver in webpack.config. Need to add on a single property on webpack docs its outlined in devServer.publicPath = this lets you specify where bundled assets should live. By default it is the root of the server, 
+ By default the devServer.publicPath is '/', so your bundle is available as http://localhost:8080/bundle.js
+
+    A) On devServer object add on publicPath key and set equal to '/dist/'
+
+Now can run devServer even without the files since devServer just uses the virtualization of the files anyway so it will work
+
+Now can run the production build to make sure the dist folder gets created with the assets inside
+
+Now can run the node server to make sure everything is working
+
+ */
