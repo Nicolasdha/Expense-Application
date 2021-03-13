@@ -5,19 +5,18 @@ import getVisibleExpenses from '../selectors/expenses';
 
 
 
-
-export const ExpenseList = (props) => (
-    <div>
-        {
-            props.expenses.length === 0 ? (
-                <p>Please add expense!</p>) : (
-                    props.expenses.map((expense) =>(
-                        <ExpenseListItem key={expense.id} {...expense}/>)
+export const ExpenseList = (props) => {
+    
+    return (
+        <div>
+            {
+                props.expenses.length === 0 ? (
+                    <p>Please add expense!</p>) : (
+                        props.expenses.map((expense) => <ExpenseListItem key={expense.id} {...expense}/>) 
                     )
-            )
-        }
-    </div>
-);
+            }
+        </div>
+)};
 
 const mapStoreToProps = (state) =>{
     return {
@@ -26,4 +25,3 @@ const mapStoreToProps = (state) =>{
 };
 
 export default connect(mapStoreToProps)(ExpenseList);
-

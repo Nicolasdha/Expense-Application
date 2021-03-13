@@ -3066,6 +3066,7 @@ push to git and heroku
 
 
 /*
+
 --------------- NEW FEATURE WORKFLOW ----------------
 
 Everything it take to add a new component, thinking, implementing, testing, delploying - end to end
@@ -3080,6 +3081,25 @@ Created at just need to make a moment object out of createdAt value and .format 
 Amount: going to use a 3rd party library called numeraljs to make it easy 
     - so install numberal, import, call it (similar to moment)
     - need this for comma seperators and decimals 
+
+
+*/
+
+
+
+/*
+
+-------- ADDING A EXPENSES SUMMARY COMPONENT -------------
+
+Create own component and append an instance of it to expenseDashboard page, need to connect that component and filter out visible expenses in that component since expenseDashboard doesnt need that data anyways
+
+Need to create test cases for it once it is done, in the video answer abstracted the function away to map and reduce all amounts into one for the total but I kept it in the component. The component is a little busy because of it but I think its nice to have in it but maybe abstract away later 
+
+*/
+
+/*
+
+
 
 
 
