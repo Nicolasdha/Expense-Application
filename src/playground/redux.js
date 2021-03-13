@@ -3099,8 +3099,120 @@ Need to create test cases for it once it is done, in the video answer abstracted
 
 /*
 
+---------- FIREBASE 101 --------------------
+
+Gives data storage, authentication, user accocunt and more 
+
+First explore in isolation to create DB, connect CB and perform CRUD ops 
+
+At its core firebase DB is a NoSQL DB that resemebles an object with key value pairs where data is stored key=string value=anything 
+
+Create DB, the rules allow us to config who is allowed to read/write to the DB. Very important in locking down data, but for now need to loosen up rules to allow anyone to read/write to the DB, great for looking at the basics for FB without having to look at authentification at the same time. Start in test mode. Change rules over to:
+{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}
+
+To to homepage and click add firebase to website, they give you script tags to add into html file but going to install using yarn, and then there is a config object that we will copy/paste into our code 
+
+yarn add firebase@latest 
+
+To use: 
+1) Add new folder in src dir  - firebase
+2) New file in folder firebase.js
+3) This is where we are actually goint to connect to the DB - once in this file and then other files in proj can use the connect by importing what we have in the file
+4) Add the following lines:
+    import firebase from 'firebase';
+    import 'firebase/database';
+    A) The * takes all of the named exports from firebase and dumps them on a new variable firebase. This is required b/c firebase doesnt have default export. Can do this as well with our files with multiple exports 
+5) Make a connection to our DB!
+    A) Grab config object that was given in browser - can change to const
+    B) Use method that was given to initialize firebase to work with the specific applications whos config is above
+    C) Test connection with one statement: firebase.database().ref().set(object) (this will be more in deatil below)
+        - passing in a simple object to test connection - name: 'Nicolas Ha'
+    D) Firebase file never gets imported by the app so its never going to run and wont get written, so for the moment going to import it in app.js to make sure it works
+        - import './firebase/firebase'
+    E) Start dev-server, and mke sure no error, go to FB dashboard online and look under data tab in DB
+
+*/
 
 
 
+
+/*
+
+------------ WRITING DATA TO FB DATABSE ---------------
+
+Add more data onto object just to see the data change on the dashboard 
+
+Now to talk about the line: firebase.database().ref().set(object)
+
+firebase.database() - since FB has a lot of other functionalities (authentication, hosting, test lab, machine learning, etc) and all of those things we have access to in the web app through the firebase module, so to get the DB related features we call .database() (authentication is .auth()). Never pass argumnets into database() just call it naked.
+    - can create a variable: const database = firebase.database()
+
+.ref() - short for reference and this give us a reference to a specific part of our database. In SQL DB might have various tables for app like user, notes, amount, table etc. MongoDB is collections. For FB its references to reference different part of my DB and store info there, users,notes, etc. Not passing anything in YET, when call it naked we get a reference to the ROOT of the DB. 
+
+.set() - Can be called on a reference to set the value of that reference. Do NOT have to pass an object to set, can set string etc
+  database.ref().set('Scoooops'), this will completley override the object .set before it leaving only the string on the DB.
+    - This override is important b/c if you reference the root and just try and change a property on the object that is there it will override the object with an object with just that property that you tried to update
+    - To JUST update a property on the existing object we have to pass an argumnet to ref so we are not working with the root. The argument is a string of the property we are trying to set
+        database.ref('age').set(30)
+
+    This is just one level deep though so to access the city/country which is nested in location we do
+      database.ref('location/city').set('Charlotteville')
+
+    To add something completley new onto the root obj just reference the key that isnt there yet and it will make it and set it to something:
+
+      database.ref('attributes').set({
+        height: '6FT1IN',
+        weight: 160,
+  });
+
+  
+  All data changing is ASYNCRONOUS b.c it needs to comm with the server and other lines of code with processed before that happens. All calls to set, initialize request, push to server, server need to process, and server reponds. So any console.log("data change complete ") will run before the data change actually completes. Need a way to actually know when things are done settting we need to integrate PROMISES
+
+
+
+
+import firebase from 'firebase';
+import 'firebase/database';
+
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCtFjuKgzocwZOZKnhvZHyYj0mbh8fPEZs",
+    authDomain: "overhead-2399c.firebaseapp.com",
+    databaseURL: "https://overhead-2399c-default-rtdb.firebaseio.com",
+    projectId: "overhead-2399c",
+    storageBucket: "overhead-2399c.appspot.com",
+    messagingSenderId: "523996820157",
+    appId: "1:523996820157:web:3cddc928fd1b3cf7ce3dd4",
+    measurementId: "G-LS6WEZ0REY"
+  };
+
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  firebase.analytics();
+
+  const database = firebase.database() 
+  database.ref().set({
+    name: 'Nicolas Ha',
+    age: 29999,
+    programmer: true,
+    location: {
+        city: 'Denver',
+        state: 'Colorado',
+        country: "United States"
+    }
+  });
+
+  database.ref('age').set(30);
+  database.ref('location/city').set('Charlotteville');
+  database.ref('attributes').set({
+      height: '6FT1IN',
+      weight: 160,
+  });
 
 */

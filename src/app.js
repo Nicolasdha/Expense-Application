@@ -12,8 +12,7 @@ import getVisibleExpenses from './selectors/expenses';
 
 import { addExpense, removeExpense, editExpense } from './actions/expenses';
 
-
-
+import './firebase/firebase'
 
 const store = configureStore();
 
