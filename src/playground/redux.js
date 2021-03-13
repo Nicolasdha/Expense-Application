@@ -3056,6 +3056,31 @@ Now can run devServer even without the files since devServer just uses the virtu
 
 Now can run the production build to make sure the dist folder gets created with the assets inside
 
-Now can run the node server to make sure everything is working
+Now can run the node server to make sure everything is working yarn run start and visit port 3000
+
+push to git and heroku
 
  */
+
+
+
+
+/*
+--------------- NEW FEATURE WORKFLOW ----------------
+
+Everything it take to add a new component, thinking, implementing, testing, delploying - end to end
+
+
+Going to make some changes to expenseListItem comp to format data, good idea to open up test file too of anything you are changing 
+
+Going to format the currency and created at for human readable stuff
+
+Created at just need to make a moment object out of createdAt value and .format it
+
+Amount: going to use a 3rd party library called numeraljs to make it easy 
+    - so install numberal, import, call it (similar to moment)
+    - need this for comma seperators and decimals 
+
+
+
+*/
