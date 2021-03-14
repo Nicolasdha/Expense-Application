@@ -22,7 +22,12 @@ const firebaseConfig = {
   database.ref().set({
     name: 'Nicolas Ha',
     age: 29999,
-    programmer: true,
+    isSingle: true,
+    stressLevel: 6,
+    job: {
+        title: 'Software dev',
+        company: 'Google'
+    },
     location: {
         city: 'Denver',
         state: 'Colorado',
@@ -30,9 +35,47 @@ const firebaseConfig = {
     }
   });
 
-  database.ref('age').set(30);
-  database.ref('location/city').set('Charlotteville');
-  database.ref('attributes').set({
-      height: '6FT1IN',
-      weight: 160,
-  });
+  database.ref()
+    .once('value')
+    .then((snapshot)=> {
+        console.log(snapshot.val())
+    })
+    .catch(()=> {
+        console.log(e, 'error fetching data')
+    })
+
+
+
+
+// database.ref().update({
+//     stressLevel: 9,
+//     'job/company': 'Amazon',
+//     'location/city': "Seattle"
+// })
+
+//   database.ref('age').set(30);
+//   database.ref('location/city').set('Charlotteville');
+//   database.ref('attributes').set({
+//       height: '6FT1IN',
+//       weight: 160,
+//   }).then(() =>{
+//     console.log('data saved ')
+//     }).catch((error)=>{
+//         console.log('Error:', error)
+//     });
+
+// database.ref('isSingle')
+//     .remove()
+//     .then(()=>{
+//         console.log('removed')
+//     })
+//     .catch((e)=>{
+//         console.log(e, 'error occured ')
+//     })
+// database.ref('attributes/height').remove()
+
+// database.ref().update({
+//     job: 'Project Manager',
+//     'location/city': 'Boston'
+// })
+

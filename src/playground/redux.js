@@ -3216,3 +3216,188 @@ const firebaseConfig = {
   });
 
 */
+
+
+/*
+
+------------- PROMISES AND ES6 PROMISES ------------------
+
+Lets us do something after setting DB is complete, new file in playground to play with them, import temporarily to app.js so it runs
+
+Easiest way to explore is just make a promise and play with it
+
+1) Make a promise with new keyword and promise constructor function passing in a CBF, and in here is where we do the long running async task (FB data change, server request, api request, take pic with webcam, look for file in file system etc)
+  - When it is done we call one of two functions depending on if it went well or not. These functions are provided for us
+  1) resolve - all good
+  2) reject - something went wrong
+
+
+  - const promise = new Promise((resolve, reject) =>{
+    resolve('All went well');
+  });
+
+  Most of the time the above code is provided for us, so wont see it alot b.c lives in FB library. We are going to be using a lot of promises by method calls like .set. So how to do something when it succeds or fails? Access the promise and register some call backs. So on the promise above we call .then() - this lets us register a callback that fires when and if the promise resolves. The data from the promise that was outlined in the resolve() is passed into the then auto, so just name it and use it
+  
+    promise.then((data) => { console.log(data)}); // 'All went well'
+
+To simulate a delay using setTimeout() to force things to wait for a few secons
+    setTimeout(()=>{
+        resolve('All went well');
+    }, 3000)
+
+Can attach a chain of .then() but this is promise chaining which is a lot easier with async/await 
+
+A promise can be resolved/rejected - cannot do both, and can only resolve/reject a promise a single time so calling resolve() twice will be ignored on the seond call, And can only pass a single argumnet to resolve or rejct. So if need more than one piece of info resolve and object with the things you need on it. Reject throws an error, and can do something after a reject (like after a resolve) with .catch chained on after the .then(CBF).catch(CBF). Can try request again, print error to user in browser. Now the promise wont be throwing JS errors it will do the .catch CBF instead which is C.L something below 
+
+    const promise = new Promise((resolve, reject) =>{
+    resolve({name: 'Nicolas', age: 29});
+    reject('something went wrong')
+  });
+
+  promise.then((data) =>{
+      console.log(data)
+  }).catch((error)=>{
+      console.log('Error:' error)
+  })
+
+.then() can take TWO arguments and the second argumnet is treated like the .catch handeler but it is a littre more confusing than the .catch methods b/c clearer to read 
+
+ promise.then((data) =>{
+      console.log(data)
+  },(error)=>{
+      console.log('Error:' error)
+    )
+
+Very rarley we will be creating our own promises, usually created by the library we are using. So we are just going to attach handlers for resolve/reject
+
+
+NOW connecting to firebase.js, where exactly are we going to be putting them in the code and what to do if sync vs fail to sync
+
+
+-------------- SETTING DATA WITH FB AND MANIPULATING THE RETURNED PROMISE TO SIGNIFY CHAGNES WERE MADE -------------
+.set() returns a promise so can just continue chaining after .set()
+
+database.ref('attributes').set({
+      height: '6FT1IN',
+      weight: 160,
+  }).then(() =>{
+    console.log('data saved ')
+    }).catch((error)=>{
+        console.log('This failed', error)
+    })
+
+
+In the docs we can learn what comes back from all of the promises: NOTHING for set(). So just need to c.l something
+
+To trigger error handeler, we are just going to block anyone from reading/writing so changeing the true to false in the rules in FB and rerunning it. The error will be triggered without an actually JS error b/c we actually caught it. W/ semi generic errors to not expose too much data for malicious stuff
+
+
+------------------------- REMOVING DATA FROM FB DB----------------------
+
+If want to wipe isSingle from DB with .remove() which is also called on the references 
+
+database.ref('isSingle')
+    .remove()
+    .then(()=>{
+        console.log('removed')
+    })
+    .catch((e)=>{
+        console.log(e, 'error occured ')
+    })
+
+
+Can also use .set(null) to remove things and still returns a promise 
+    but remove is more explicit
+
+
+---------------------- UPDAING DATA FROM FB DB -----------------
+
+How to efficiently update data. Efficiently b/c can do update with the .set and .remove but using the .update() method we can do multiple things with one call instead of a lot
+
+database.ref().update(object)
+
+.update() HAS to be called with an obejct! B/c the whole poing of it is to update everything we want in one shot. 
+
+database.ref().update({
+    name: 'mike',
+    age: 33,
+    job: "Developer",
+    isSingle: null,
+})
+
+Here we are targeting the ROOT and changing the name and age but eveything else will stay unlike .set() that will erase everything expect the things that are passed into .set()
+
+Can also add something NEW on if wanted with a new key and setting it to something. Can also DELETE them by setting the key value to null
+
+Switching the nested objects. Want to change the city to Boston and the job to Project Manager 
+
+database.ref().set({
+    name: 'Nicolas Ha',
+    age: 29999,
+    job: 'Software Dev',
+    location: {
+        city: 'Denver',
+        state: 'Colorado',
+        country: "United States"
+    }
+  });
+
+
+  database.ref().update({
+      job: 'Project Manager',
+      location: {
+          city: 'Boston'
+      }
+  }
+
+Above DOES NOT work. It deletes state/country b/c the update object ONLY updates that the root level so when we go into nested objects it is not going to update the nested objects properties it is going to update the whole nested object to be the new object passed in. So instead of providing a value for location we need to provide the reference location as the key and the new value as the value. So we reference the path to the thing that you want to update but need to put it in quotes since it is not valid JS b/c it contains a /
+
+
+ database.ref().update({
+      job: 'Project Manager',
+      'location/city': 'Boston'
+  })
+
+
+  .update() also support promises and then chaining
+
+
+*/
+
+
+
+/*
+
+-------------------- FETCHING DATA FROM FB ----------------------
+
+Can fetch data one time to get some value
+
+Can also set up a subscription to get the data whenever anything changes
+
+To fetch all of the data into JS so we can actually do something with it, eventually rendering the data with React calls
+
+Still going to get a reference of the root, can get just location info or just the name as well.
+
+Using the .once() method that takes one argument - the event type 'value' if just trying to get all of the data at a specific reference
+.once('value') returns a promise which we maniuplate to do seomthing with data when it comes back or with the error if it throws one 
+database.ref().once('value')
+
+The data that comes back from a .once() call is called a SNAPSHOT. One the snapshot we have access to our data. But we need to handle reading the data on the snapshot. Can extract the object using snapshot.val()
+.val() is a function that we call with no arguments and returns the data we requested 
+
+
+This will get whole DB once and log it
+database.ref().once('value).then((snapshot)=> {console.log(snapshot.val())}).catch(()=>{console.log(e, 'error fetching data')})
+
+This will get name once and log it
+database.ref('name')
+    .once('value')
+    .then((snapshot)=> {
+        console.log(snapshot.val())
+    })
+    .catch(()=> {
+        console.log(e, 'error fetching data')
+    })
+
+
+*/
