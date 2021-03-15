@@ -3400,4 +3400,234 @@ database.ref('name')
     })
 
 
+This is the data for a single time - either succeds or fails . once()
+
+There is a way to have the server notify us about changes - .on()
+
+.on() is a method that listens for something continuously. .on() takes a CBF as the second argumnet to actually run some code after we get the referenced value back. Identical to the .then() chain b/c that CBF is called with the snapshot of data which we can do things with. Pormises wont work here b.c they only run once and resolve/reject with a single value so need a funciton to rerun everytime something changes 
+
+database.ref().on('value', (snapshot) =>{
+    console.log(snapshot.val())
+})
+
+Now we have subscribed to changes so CBF run everytime if the data ever changes.
+
+We can be notified of errors by passing in a third argumnet to .on() as an error handling CBF
+
+
+database.ref().on('value', (snapshot) =>{
+    console.log(snapshot.val())
+}, (error) =>{
+    console.log('Error with data fetching', error)
+})
+
+We can unsubscribe by using the .off() method. We do this by accessing the same ref, and calling the method unsbscribes ALL subscriptions to that reference 
+
+database.ref().off()
+
+Can be selective about which subscription we unsubscribe to by passing in a CBF to .off() b/c .on() actually returns the function that you have subscribed to so can create a variable for each subscirption and pass that variable into .off() to cancel that single subscription
+
+const onDBValueChange = database.ref().on('value', (snapshot) =>{
+    console.log(snapshot.val())
+})
+
+
+database.ref().off(onDBValueChange);
+
+*/
+
+
+/*
+
+=--------------------- ARRAY DATA IN FB -----------------------=
+
+Have to figure out how to store list based data, b/c FB does not support arrays 
+
+in MongoDB we have a collection of documnets, in sql we have a table with rows, with FB we have
+
+If try to define an array of object and set it in FB DB, it gets converted into an object like structure with child locations stemming off of the root where the property of the .ref() value (either root or 'notes' or anything) is just the index of the item on the array that is passed in. So the following array
+
+const notes = [{
+    id: a42g2,
+    title: todo,
+    body: clean,
+}, {
+    id: q987h,
+    title: dinner,
+    body: cook pasta,
+}]
+
+  database.ref('notes').set(notes)
+
+
+looks like: 
+notes: 
+    0:{
+        id: a42g2,
+        title: todo,
+        body: clean,
+    },
+    1: {
+        id: q987h,
+        title: dinner,
+        body: cook pasta,
+    }
+
+
+
+Technically we can work with this but if we want to update,remove,fetch a note we would want to do the CRUD ops by selecting a note by its ID. Which is difficult to do in this set up. SO we need a way to store info more suited to how FB stores data. An object at the root, our property of notes which is NOT going to be an array itll be an object, and in FB world they keys on this object will be the note's id (auto gened ids) whose value will be an object with the properties of the note (excluding id prop). So anytime we want an arry we set it up with a unique identifier and set its value equal to an object where we put the array stuff.
+
+
+const firebaseNotes = {
+    notes: {
+        a42g2: {
+            title: todo,
+            body: clean,
+        },
+        q987h:{
+            title: dinner,
+            body: cook pasta,
+        }  
+    }
+}
+
+
+SO how to we auto gen id's and set them as values to save to FB? 
+database.ref('notes').push(value)
+
+When we use .push(value) FB will auto create a new property on our refernce(notes here), and it will give it a random value. It takes the value we pass into push and sets it as the object value
+
+database.ref('notes').push({
+      title: 'todo',
+      body: 'clean'
+  })
+
+WILL BECOME:
+
+  notes: {
+    -MVrKsRkn06F5YAR7cPW: {
+        body: "clean",
+        title: "todo"
+    }
+}
+
+Where -MVrKsRkn06F5YAR7cPW is auto genned by FB. This is how we are ging to work with list based data in FB, storing it in this structure. This makes it easy to access an individual item to manipulate it 
+
+
+
+How do we get access to the note to manipulate it?
+
+Can copy id from FB dashboard and do database.ref('notes/-MVrKsRkn06F5YAR7cPW').update({body: "Workout"})
+(BUT remember to get rid of .push() code b/c it will keep pushing the same data onto the notes object with a new id)
+
+
+
+Need to figure out how to fetch the array-like data(the object structure that FB stores) and do something with it in redux does expect an array. To get all of the expenses and manipulate them
+
+To read the data off of the expense ref = 
+
+database.ref('expenses').once('value').then( (snapshot) =>{
+    console.log(snapshot.val())
+})
+
+So we need to do a conversion of data by using a snapshot method - .forEach() to iterate over every expense and get a childSnapshot of each item in the object. With this we can declare an empty array and push each childSnapshot onto the array creating an array of expenses. We can get access to any key value on a snapshot with another snapshot property .key. Can use .key on the childSnapshot to get its auto genned id as a string. 
+
+The expenses array in the app expects an id property to be defined to do stuff like editExpense etc SO when we are pushing each childSnapshot to the array we can make it an object, set the id: value to childSnapshot.key to push the expense id with it and then spread out with the spread operator the rest of childSnapshot
+
+  database.ref('expenses').once('value').then( (snapshot) =>{
+    const expenses = [];
+    snapshot.forEach((childSnapshot) =>{
+        expenses.push({
+            id: childSnapshot.key,
+            ...childSnapshot.val()
+        })
+    })
+    console.log(expenses)
+})
+
+
+
+To subscribe to changes and print the array of object each time = 
+
+database.ref('expenses').on('value', (snapshot) =>{
+    const expenses = [];
+    snapshot.forEach((childSnapshot) =>{
+        expenses.push({
+            id: childSnapshot.key,
+            ...childSnapshot.val()
+        })
+    })
+    console.log(expenses)
+});
+
+
+Subscribing to other events in the Firebase version of an array list above. the .on() has a few different event types that we can use:
+
+value event
+Will trigger once with the initial data stored at this location, and then trigger again each time the data changes. 
+ref.on('value', function(dataSnapshot) {
+
+child_added event
+Will be triggered once for each initial child at this location, and it will be triggered again every time a new child is added. For ordering purposes, it is passed a second argument which is a string containing the key of the previous sibling child by sort order, or null if it is the first child.
+ref.on('child_added', function(childSnapshot, prevChildKey) {
+
+
+child_removed event
+Will be triggered once every time a child is removed. The DataSnapshot passed into the callback will be the old data for the child that was removed. A child will get removed when either:
+
+a client explicitly calls remove() on that child or one of its ancestors
+a client calls set(null) on that child or one of its ancestors
+that child has all of its children removed
+there is a query in effect which now filters out the child (because it's sort order changed or the max limit was hit)
+ref.on('child_removed', function(oldChildSnapshot) {
+
+
+child_changed event
+Will be triggered when the data stored in a child (or any of its descendants) changes. Note that a single child_changed event may represent multiple changes to the child. The DataSnapshot passed to the callback will contain the new child contents. For ordering purposes, the callback is also passed a second argument which is a string containing the key of the previous sibling child by sort order, or null if it is the first child.
+ref.on('child_changed', function(childSnapshot, prevChildKey) {
+
+
+child_moved event
+Will be triggered when a child's sort order changes such that its position relative to its siblings changes. The DataSnapshot passed to the callback will be for the data of the child that has moved. It is also passed a second argument which is a string containing the key of the previous sibling child by sort order, or null if it is the first child.
+ref.on('child_moved', function(childSnapshot, prevChildKey) {
+
+
+
+Add on a few subscribers:
+
+
+database.ref('expenses').on('child_removed', (snapshot)=>{
+    console.log(snapshot.key, snapshot.val())
+})
+
+
+database.ref('expenses').on('child_changed', (childSnapshot, prevChildKey) =>{
+    console.log( childSnapshot.key, childSnapshot.val())
+})
+
+
+database.ref('expenses').on('child_added', (childSnapshot, prevChildKey) =>{
+    console.log( childSnapshot.key, childSnapshot.val())
+})
+
+** Child Added fires one time for all data already at the location 
+
+Able to easily figure out whats changes rather than looking through everything and manually figuring out the things that have changed 
+
+
+*/
+
+
+
+
+/*
+
+------------------ FIREBASE WITH REDUX ---------------------------
+
+
+
+
+
+
+
 */

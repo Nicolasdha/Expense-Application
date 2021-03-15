@@ -1,5 +1,6 @@
 import firebase from 'firebase';
 import 'firebase/database';
+import { toISODateString } from 'react-dates';
 
 
 const firebaseConfig = {
@@ -15,67 +16,52 @@ const firebaseConfig = {
 
 
   // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  firebase.analytics();
+firebase.initializeApp(firebaseConfig);
+firebase.analytics();
 
-  const database = firebase.database() 
-  database.ref().set({
-    name: 'Nicolas Ha',
-    age: 29999,
-    isSingle: true,
-    stressLevel: 6,
-    job: {
-        title: 'Software dev',
-        company: 'Google'
-    },
-    location: {
-        city: 'Denver',
-        state: 'Colorado',
-        country: "United States"
-    }
-  });
-
-  database.ref()
-    .once('value')
-    .then((snapshot)=> {
-        console.log(snapshot.val())
-    })
-    .catch(()=> {
-        console.log(e, 'error fetching data')
-    })
+const database = firebase.database();
 
 
 
 
-// database.ref().update({
-//     stressLevel: 9,
-//     'job/company': 'Amazon',
-//     'location/city': "Seattle"
-// })
-
-//   database.ref('age').set(30);
-//   database.ref('location/city').set('Charlotteville');
-//   database.ref('attributes').set({
-//       height: '6FT1IN',
-//       weight: 160,
-//   }).then(() =>{
-//     console.log('data saved ')
-//     }).catch((error)=>{
-//         console.log('Error:', error)
-//     });
-
-// database.ref('isSingle')
-//     .remove()
-//     .then(()=>{
-//         console.log('removed')
+// database.ref('expenses').on('value', (snapshot) =>{
+//     const expenses = [];
+//     snapshot.forEach((childSnapshot) =>{
+//         expenses.push({
+//             id: childSnapshot.key,
+//             ...childSnapshot.val()
+//         })
 //     })
-//     .catch((e)=>{
-//         console.log(e, 'error occured ')
+//     console.log(expenses)
+// });
+
+database.ref('expenses').on('child_changed', (childSnapshot, prevChildKey) =>{
+    console.log( childSnapshot.key, childSnapshot.val())
+})
+
+
+
+
+
+
+
+
+// database.ref('expenses').once('value').then( (snapshot) =>{
+//     const expenses = [];
+//     snapshot.forEach((childSnapshot) =>{
+//         expenses.push({
+//             id: childSnapshot.key,
+//             ...childSnapshot.val()
+//         })
 //     })
-// database.ref('attributes/height').remove()
+//     console.log(expenses)
+// });
 
-// database.ref().update({
-//     job: 'Project Manager',
-//     'location/city': 'Boston'
-// })
 
+
+// database.ref('expenses').push({
+//     description: 'Rent',
+//     amount: 1095,
+//     notes: 'Rent sucks',
+//     createdAt: 12948723982
+// });
