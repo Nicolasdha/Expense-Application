@@ -21,47 +21,4 @@ firebase.analytics();
 
 const database = firebase.database();
 
-
-
-
-// database.ref('expenses').on('value', (snapshot) =>{
-//     const expenses = [];
-//     snapshot.forEach((childSnapshot) =>{
-//         expenses.push({
-//             id: childSnapshot.key,
-//             ...childSnapshot.val()
-//         })
-//     })
-//     console.log(expenses)
-// });
-
-database.ref('expenses').on('child_changed', (childSnapshot, prevChildKey) =>{
-    console.log( childSnapshot.key, childSnapshot.val())
-})
-
-
-
-
-
-
-
-
-// database.ref('expenses').once('value').then( (snapshot) =>{
-//     const expenses = [];
-//     snapshot.forEach((childSnapshot) =>{
-//         expenses.push({
-//             id: childSnapshot.key,
-//             ...childSnapshot.val()
-//         })
-//     })
-//     console.log(expenses)
-// });
-
-
-
-// database.ref('expenses').push({
-//     description: 'Rent',
-//     amount: 1095,
-//     notes: 'Rent sucks',
-//     createdAt: 12948723982
-// });
+export { firebase, database as default};

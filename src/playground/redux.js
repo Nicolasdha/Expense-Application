@@ -3624,8 +3624,167 @@ Able to easily figure out whats changes rather than looking through everything a
 
 ------------------ FIREBASE WITH REDUX ---------------------------
 
+--------------- ASYNCROUNUS REDUX ACTIONS -----------
+
+Allow us to run some additional code when change the redux store that is where we are going to use the FB methods to update FBDB, so when someone dispatchs a async action we can update the redux store and FBDB keeping ui and DB synced 
 
 
+---------- CreateExpense Page --------------------
+
+We are going to change this page so it will save the new expense to FB and then going to do the redux action generator, this will make sure the data gets saved and added to the redux store 
+
+Where to put the firebase code in the app? Can put it in each component like create, edit, but Should the components be communicating with FB? NO. The components do NOT need to have communication with FB, and they should even know that FB is the DB. The components should be unaware of where the data is coming from and where its going b/c this is not the concern of the component, they should just be concerned with the presentation and basic UI.
+
+So going to abstract all FB code away from components and any of the component files, instead we are going to change our redux actions!
+
+Open actions folder, the filters actions will never integrate with FB it is the expenses actions
+
+Need to tweak how our action generators work. So far with the expenses actions it does the steps
+
+Synchronous 
+1) component calls action generators
+2) action generator returns object, one below or one of the ones in the filters file
+3) component takes that object and passes it to dispatch
+4) redux store runs reducers and it changes 
+
+Async
+1) component calls action generators
+2) action generator will return a function (withh thunk)
+3) component takes what ever returns from that function and passes it to dispatch, dispatching a function
+    - Need redux middleware to make this possible since it need an object by default 
+4) function runs: when we do dipatch the function redux will internally execute the function and this will allow the function to do whatever it wants, where we put FB code then have the ability to dispatch a standard action that returns an object and that will manipulate the redux store 
+
+
+Need to add the new middleware = redux-thunk = this only adds support for dispathing functions
+
+Need to install AND make changes to redux store configureStore.js to integrate redix-thunk
+
+In the configure store file, get new redux item applyMiddleware and import thunk from 'redux-thunk';
+
+Without using the devtools extention this would be a lot easier, the second argumnet would be a call toapplyMiddleware passing in all middleware in, just one piece in this case, (thunk)
+
+export default () => {
+    const store = createStore(combineReducers({
+        expenses: expensesReducer,
+        filters: filtersReducer,
+        })
+    , applyMiddleware(thunk))};
+    return store
+}
+
+We would lose the dev tools and its functionality tho so need to add in more code. Create a const composeEnhancers and get its value from window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
+
+Only going to use that line if it exists so just logical OR operator || and attach the regular compose function that we need to import from 'redux
+
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
+
+So IF using devtools it will get set up correcrtly and if not then wont worry about it and use compose. SO we just wrap applyMiddleware in a call to composeEnhancers
+
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+export default () => {
+    const store = createStore(
+        combineReducers({
+            expenses: expensesReducer,
+            filters: filtersReducer,
+        }),
+        composeEnhancers(applyMiddleware(thunk))
+    )
+    return store;
+};
+
+
+
+NOW in firebase.js we are just going to export two things:
+1) firebase - just in case want to use firebase can just import this file 
+2) database variable - shortcut to the database 
+
+export { firebase, database as default };
+
+name export firebase and default is database
+
+
+
+Got everyrhing set up in config store and firebase moving on to actions/expenses.js
+
+Add a NEW export startAddExpense. addExpense has an object dispatched, this will actually change the Redux store, BUT startAddExpense will just start that process off and then dispatch the addExpense inside of the function which will keep changing the store 
+
+startAddExpense is what returns the thing that gets dispatched, in the past we have always implicitly returned objects, here we are going to return a function. The function gets called internally by redux and called with (dispatch) this gives us access to dispatch so we can use inside of the function (writing data to FB, waiting for data to sync, then use dispatch to dispatch addExpense making sure redux store makes those changes too)
+
+SO since we are saving to FB in this new function that means we want to restructure addExpense to instead of having the defaults up in addExpense we want to shift those down to the new function. A NEW/Different way of setting up the data, can just structure like we did already as well, but we are going to destructure expenseData
+
+So if we get some expenseData and if not set to an empty object 
+(expenseData = {}), THEN in the return function (thunk enabled) we destructure the expenseData. Make the expenseData connecting from the = expenseData at the end of the destructuring chain, it is identical to what we normally do but it is a bit easier to read. Can also just drag the current way of setting up defaults as well but harder to read
+
+export const startAddExpense = (expenseData = {}) =>{
+    return (dispatch) =>{
+        const {
+            description = '',
+            note = '',
+            amount = 0,
+            createdAt = 0,
+        } = expenseData
+    };
+}
+
+AND then the normal addExpense function can get a lot more simple since setting up default in the new function, so can delete all of the presets in the normal addeExpense function
+
+Now what we are going to do s actually save some data going to import FB and use .push() to actua;ly save some data so need to import FB database from above so we can actually use database.ref('expenses').push({}). We are trying to push on an expense object. Going to make a variable for the object to push with the four data properties on that expense.
+
+const expense = { decription, note, amount, createdAt };
+
+database.ref('expenses').push(expense).then(()=>{
+
+})
+
+So far startAddExpense runs, gets the expenseData or default data, and then push it to FB, and then need to dispatch the regular redux action from above otherwise the redux store will never be in sync with FB. So we dispatch(addExpense(object)) passing in the object into addExpense. 
+
+database.ref('expenses').push(expense).then(()=>{
+    dispatch(addExpense(expense))
+});
+
+BUT the ID from above is getting created by uuid() but now we have one from FB so we can simplify the code a lot. So we refactor addExpense. Can just pass in expense that it is being called with in startAddExpense instead of setting up the default AND instead of creating the object below on expense we can just put expense: expense or just expense for ES6 shorthand.
+
+FROM: 
+
+export const addExpense = (
+    {
+        description = '',
+        note = '',
+        amount = 0,
+        createdAt = 0,
+    } = {}
+    ) =>({
+    type: 'ADD_EXPENSE',
+    expense: {
+        id: uuid(),
+        description: description,
+        note: note,
+        amount,
+        createdAt
+    }
+});
+
+
+
+TO:
+
+export const addExpense = (expense) =>({
+    type: 'ADD_EXPENSE',
+    expense
+});
+
+
+ On this we do need to add the ID as well but the good news is that .then() CB success case from .push(expense) get called with the reference. So we can access the reference by passing in (ref) into the .then((ref)=>{}) call as an argumnet and do something meaningful with it, define our object that we are passing into addExpense setting the id property to ref.key (key comes from the FB usage), and then tack on all of the other properties of expense by spreading them out
+
+database.ref('expenses').push(expense).then((ref)=>{
+    dispatch(addExpense({
+        id: ref.id,
+        ...expense
+    }))
+});
+
+
+NOW just need to make sure we dispatch startAddExpense instead of dispatching addExpense in all of the places in the createExpense component
 
 
 
