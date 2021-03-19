@@ -1,2 +1,4 @@
 node_modules/
 public/dist/bundle.js.LICENSE.txt
+.env.development
+.env.test

@@ -1,7 +1,5 @@
 import firebase from 'firebase';
 import 'firebase/database';
-import { toISODateString } from 'react-dates';
-
 
 const firebaseConfig = {
     apiKey: process.env.FIREBASE_API_KEY,
