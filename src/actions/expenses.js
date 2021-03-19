@@ -1,5 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import database from '../firebase/firebase';
+import { firebase } from '../firebase/firebase';
+
 
 
 // ADD_EXPENSE
@@ -40,7 +42,7 @@ export const startAddExpense = (expenseData = {}) =>{
 
         const expense = { description, note, amount, createdAt }
 
-        database.ref('expenses').push(expense).then((ref)=>{
+        return database.ref('expenses').push(expense).then((ref)=>{
             dispatch(addExpense({
                id: ref.key,
                ...expense 

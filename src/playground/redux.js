@@ -3787,6 +3787,194 @@ database.ref('expenses').push(expense).then((ref)=>{
 NOW just need to make sure we dispatch startAddExpense instead of dispatching addExpense in all of the places in the createExpense component
 
 
+SO by using thunk we were able to create async actions that will do something first, something async which is a FB call and then dispatch the redux action after the async call to change the redux store 
+
+
+*/
+
+
+
+/*
+
+------------------- TESTING THE CHANGES WE MADE WITH JEST ---------------
+
+
+Needed to change the test case in createExpense b/c the prop now needs to be startAddExpense
+
+
+Need to change test case in actions.expenses.test.js b/c now the "should set up default addExpense action object" test is obsolete b.c setting up the defaults is now the job of the new startAddExpense, and only need one test the "should setup add expense action object with provided values"
+
+Currently we are passin in an object with no ID in the test case but FB is actually setting an ID to the expense object when it gets passed in and used, so instead of creating dummy data and passing it in we can just get the data from a fixture b/c it has an id on it 
+
+FROM:
+
+test('should setup add expense action object with provided values', () =>{
+    const expenseData = {
+        description: 'test',
+        amount: 0,
+        note:"test",
+        createdAt: 0
+    }
+    
+    const action = addExpense(expenseData)
+
+    expect(action).toEqual({
+        type: 'ADD_EXPENSE',
+        expense: {
+           ...expenseData,
+           id: expect.any(String)
+        }
+    });
+});
+
+
+TO:
+
+
+test('should setup add expense action object with provided values', () =>{
+    
+    const action = addExpense(expenses[0])
+
+    expect(action).toEqual({
+        type: 'ADD_EXPENSE',
+        expense: expenses[0]
+    });
+});
+
+
+
+NOW need to add a new test case for startAddExpense 
+
+1) should add expense to DB and store
+- Here we care that the FBDB was successfully updatd, and that the correct action was dispatched. There is a test module for the redux store that makes it possible to mock something to see if an action was dispatched to the redux store 
+- redux-mock-store = let you spin up mock store, use it in test cases, and look at what actions were dispatched to it 
+    A) Install it to deps yarn add redux-mock-store and import configureMockStore AND thunk b.c if we are going to use it it needs the same middleWare 
+    B) Use the configureMockStore function - store in a global variable createMockStore - here we are creating configuration so the test cases can create the mock store . In the argumnet for configureMockStore() we are able to pass in an array of any middleware that we want to use 
+        const createMockStore = configureMockStore([thunk])
+
+    C) Actually create a mock store in test by creating const store calling createMockStore and for this one we are going to pass in the degfault data an empty object - Now we can actually use store.dispatch on it to dispatch our async action
+    D) Now we can actually use store.dispatch on it to dispatch our async action. Import async store action startAddExpense, and use it in the store.dispatch(startAddExpense( 4 attributes )) call
+        - Need to pass in the 4 attributes into description, amount, createdAt, note, so create a const and put an object on it with those properties 
+        const expenseData = {
+            description: 'Mouse',
+            amount: 3000 ,
+            note: This mouse is better,
+            createdAt: 1000
+        }
+store.dispatch(startAddExpense(expenseData))
+
+    E) Now how do we do something once it is done running, we have async code but no way to set up async test case: Goal is to wait for everything to complete, wait for the FB call to actually finish, and once all of that happens then and only then can we make the assertions = promise chaining to do multiple things per promise. The second .then() call gets no data passed to it unless we return seomthing from the first .then() call 
+        - SO we need to actually add a RETURN before the database.ref('expenses).push(expense)..... line in actions/expenses.js so it will return all of that stuff that comes back from that line so we can toss on another .then() and have access to that data. We dont put the new .then() in the actions/expenses.js file since we want to judge it in the test file but by returning the promise chain we can continue chaining on in the test file
+    F) Now we can make assertions knowing that data should have been saved to FB and the action should then have been dispatched b/c the action is waiting for the async call to FB to run. So we chain on another .then() onto 
+        store.dispatch(startAddExpense(expenseData)).then(()=>{})
+    
+        - But when we are working with async test cases in jest we need to tell it that it is async, if not it will go thru the original function and if no error returns it passes, the problem is that the store.dispatch..... code doesnt run until long after the test case returns since its async, need to wait for FB, and do all of that and then the store.dispatch function gets called.
+
+        - SO to tell jest to wait for something we need to provide an argumnet in the OG function - (done)
+        - SO the test case wont be a success or failure until AFTER we call done() so we can add it after all async code 
+
+    G) Need to figure out how we can get all actions dispatched to the mock store: The mock store supports the exact API function calls as the real store does and other things like .getActions() which gets all of the actions that were dispatched to the mock store then make assertions about them 
+        - Get all of the actions in that happened on the mock store with const actions = store .getActions(); 
+            - This will return an arraty with all of the actions that were dispatched on it. In this case we only expect one action to have been dispatched to the store, if we follow the chain of events the actual object that gets dispatched is 
+                dispatch(addExpense({
+                id: ref.key,
+                ...expense 
+                })
+            - This is the only time we change the store so we just expect one action to show up in the array 
+    H) Make assertion about the array that gets returned from  store .getActions() to check if that one action is on it - addExpense. Expect the first and only action on the array toEqual the action object of addExpense wth the type of 'ADD_EXPENSE' and a property expense that is equal to all of the dummy expenseData with an id: on it as well 
+
+    expect(actions[0]).toEqual({
+        type: 'ADD_EXPENSE',
+        expense: {
+            id: expect.any(String),
+            ...expenseData
+        }
+    })
+
+    I) NOW need to make another assertion to fetch data from FB to see if the data was actually saved over there. Need access to DB to import DB from ../firebase/firebase.js. Then can actually query the DB to make sure that it was actually stored correctly by accessing database.ref() - the goal here is to figure out how we can get the individual epxnese. 
+        - template string in ref() - start off with 'expenses/ID' need to pass the ID in and have access to that since we have access to the complete action object so `expenses/${actions[0].expense.id}` - this is the id generated by FB and can use to fetch that item
+        - chain on .once('value') to get that value a single time and attach a .then() listener and provide the function and make assertion about the data
+        - inside .then we need to get the snapshot and when we get it we convert to an actual value and make an assertion that it should equal all of the dummy data above
+
+        .then((snapshot)=>{
+            expect(snapshot.val()).toEqual(expenseData)
+        }) 
+
+    J) Since this new callback is async too we need to take done() and put it inside there to make sure we wait for it 
+
+
+test('should add expense to DB and store', (done) =>{
+    const store = createMockStore({});
+    
+    const expenseData =  {
+        description: 'Mouse',
+        amount: 3000 ,
+        note: 'This mouse is better',
+        createdAt: 1000
+    }
+
+    store.dispatch(startAddExpense(expenseData)).then(()=>{
+        const actions = store.getActions();
+        expect(actions[0]).toEqual({
+            type: 'ADD_EXPENSE',
+            expense: {
+                id: expect.any(String),
+                ...expenseData
+            }
+        });
+
+
+        database.ref(`expenses/${actions[0].expense.id}`).once('value').then((snapshot) =>{
+            expect(snapshot.val()).toEqual(expenseData);
+            done();
+        });
+    });
+});
+
+
+
+
+This is a lot of callback nesting so we can refactor this with promise chaining.
+
+In a promise chain:
+
+We can return nothing, the next .then() will fire but with no info passed in 
+
+We can return a value that the next .thn() will have access to 
+
+We can also return another promise - if we return a promise the next .then() CB is that promises success case - the RETURN keyword is important before the promise, if it is there the next .then() will be its success case and will only run when that promise actually resolves and if it is NOT than it will not be 
+
+This reduces needs for nested callbacks. To integrate this in the code
+
+We are going to return a promise from the first .then()'s function SO we take the second .then() and everything after it and cut it out
+        .then((snapshot) =>{
+            expect(snapshot.val()).toEqual(expenseData);
+            done();
+
+database.ref(`expenses/${actions[0].expense.id}`).once('value') - this line at its core is the second promise 
+
+SO we need to put a return in the front of that line 
+return database.ref(`expenses/${actions[0].expense.id}`).once('value')
+
+Then take the second .then() code and paste it onto the end of the returned promise. This gives exact same funcitonality that is a bit easier to read
+
+
+
+2) should add expense to DB and store with defaults
+Copy/paste all of code, and change to default values in dummy data and rename variable and switch variable names out
+
+
+
+*/
+
+
+
+/*
+---------------- CREATING A TEST DATABASE -------------------
+
+In all of the tests above we were writing to the actual DB for the app so we need to create a test DB to run with our tests 
+
+
 
 
 */
