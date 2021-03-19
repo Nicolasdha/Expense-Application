@@ -4092,6 +4092,116 @@ yarn test  --watch
 
 And hopefully the test data gest added to the test DB and not the regular one 
 
+----------- SETTING UP HEROKU ENVIRONMENT VARIABLES --------
+
+NONE of the code above runs on production - we made sure of it with the if statments in webpack.config. IF we do want to set up production variables we need to use the Heroku CLI which allows us to set up variables on process.env, NODE_ENV is automatically set for us equal to the string 'production' but for the other ones we used in the firebaseConfig object we need to set them up manually otherwise when we try to use them in the DefinePlugin we will be passing in undefined values to the client side JS when heroku runs webpack
+
+SO we need to take everyting fron the .env.development file and put it into a command 
+
+Series of Heroku cmnds to manage our heroku configuration
+
+heroku config - prints out all environment variables none to start 
+
+heroku config:set KEY=value - this sets an environment variable using the KEY=value pairs 
+
+heroku config:unset KEY - this will remove the environment varible with they key as KEY
+
+so need to run:
+
+heroku config:set FIREBASE_API_KEY=AIzaSyCtFjuKgzocwZOZKnhvZHyYj0mbh8fPEZs
+heroku config:set FIREBASE_AUTH_DOMAIN=overhead-2399c.firebaseapp.com
+heroku config:set FIREBASE_DATABASE_URL=https://overhead-2399c-default-rtdb.firebaseio.com
+heroku config:set FIREBASE_PROJECT_ID=overhead-2399c
+heroku config:set FIREBASE_STORAGE_BUCKET=overhead-2399c.appspot.com
+heroku config:set FIREBASE_MESSAGING_SENDER_ID=523996820157
+heroku config:set FIREBASE_APP_ID=1:523996820157:web:3cddc928fd1b3cf7ce3dd4
+heroku config:set FIREBASE_MEASUREMENT_ID=G-LS6WEZ0REY
+
+
+
+NOW deloying to heroku will actually work - without setting up the environmet variables it wouldnt have
+
+*/
+
+
+
+/*
+
+------------- FETCH EXISTING EXPENSES FROM FBDB ---------------
+
+Create some test data in the tests/actions/expenses.test.js file. Here we are actually interacting with FB so create some expenses here in the lifecycle method beforeEach(()); to write some data to FB. Can just loop over the expenses fixtures array, add a new item onto dummyExpenses for each one and set it to FB
+
+.forEach to loop thru expenses destructuring the argumnets to pass in for each expense. For each expense in the array we are trying to set the value of the id equal to the object with all other properties on it since that is the way we are storing it in FB. Trying to set the value of the id variable so NEED TO use bracket syntax and set it equal to an object with all of the destructured values set to their name so we can use ES6 shorthand syntax and only provide the name and not description: description just description
+
+dummyExpenses[id]
+
+
+beforeEach((done)=>{
+    const dummyExpenses = {};
+    expenses.forEach(({ id, description, note, amount, createdAt })=>{
+        dummyExpenses[id] = { description, note, amount, createdAt }
+    })
+    database.ref('expenses').set(dummyExpenses).then(()=> done())
+});
+
+
+BUT as of right now beforeEach() is not going to wait for database.ref().set() to complete before it runs the test cases. To fix this we can use done, chain it onto the .set() promise with a .then to call done() when we have set the data to FB
+
+
+Now that we have dummy data go into actions/expenses.js going to be adding two new exports:
+
+1) Actual thing that changes redux store -- SET_EXPENSES -- to set array value, get array back from FB, set it and done 
+
+    A) Arrow function implicitly return an object with a type: SET_EXPENSES on it and provide the data expenses and put in on the expenses property so ES6 shorthand expenses: expenses
+
+    const setExpenses = (expenses ) => ({
+        type: "SET_EXPENSES",
+        expenses
+    })
+
+    B) Add test case to make sure we get uniform structure back. Have the expenses value set the to expenses from above with shorthand
+        test('should setup SET_EXPENSE action object with data', () =>{
+          const action = setExpenses(expenses);
+            expense(action).toEqual({
+                type: 'SET_EXPENSES',
+                expenses
+            })
+        })
+
+    C) NOW time to actually handle this action in the reducers file
+        - set up a new case in the reducers file for SET_EXPENSES this is going to wipe the state and reaplce it with all expenses that are passed into the reducer, completly setting the expense array 
+        - just need to return the action.expenses b/c we do not care about the state at all, designed to set expenses arry completly
+    
+        D) Add test case: define an action object with type:'SET_EXPENSES', expenses: {one expenese}
+            - now call the expenseReducer passing in all expense fixutres as the state and the action about and expect that the state is going to equal just that one expense not the whole expense fixtures array
+
+
+
+2) Async action responsible for fetching data to FB -- START_SET_EXPENSES - this is what actually fetchs the data and eventually dispatchs SET_EXPENSES 
+    A) In app.js we are able to show a loading screen with async actions b/c startSetExpenses() returns a promise so we can chain a .then() on then to render something else once the async promise goes thru
+
+    ReactDOM.render(<p>Loading...</p>, document.getElementById('app'))
+
+    store.dispatch(startSetExpenses()).then(()=>{
+        ReactDOM.render(jsx, document.getElementById('app'))
+    })
+
+    B) Arrow function with no argumnets, so return our function, this function is the function that has access to dispatch. We first need to put return at the beginning, this is what allows us to put .then() in the app.js where we actually dispatch things and rerender the scren. Then we need to fetch with FB using database (alrdy imported).ref('expenses').once('value') access a single time the data .then() add on success case passing in snapshot that is given back from .once() and we need to parse the data from snapshot putting it in an array structure not an object structure. 
+    C) declare an empty arry and use the snapshot.forEach method with each childsnapshot to push each childsnapshot onto the array in the correct form. The correct form you need to access the childsnapshot key property which was created by FB and set it to the property id: and then spread out the rest of the childsnapshot.val() object 
+    D) Have access to build up expenses arry now and just need to dispatch setExpenses passing in what it expects, an array of expenese 
+
+
+    E) Create a new test case for it. Just like all test cases that take advantage of the async request we need to create the mock store createmockstore, go thru process about making the request and assert something about one of the actions that were disptched, no need to query FBDB inside test case b/c dont expect it to change at all
+
+        1) Create mock store const store = createMockStore() passing in NO data b/c dont need it 
+        2) import startSetExpenses and store.dispatch(startSetExpenses()) with no arguments b/c doesnt take any
+        3) Add done() to the file to tell jest not to make any assertions until it is called b/c async request
+        4) now make assertions after the the data is fetched .then(()=>{})
+        5) get the actions that were called with store.getActions();
+        6) expect the action at the 0 index to equal an obect with tyope: 'SET_EXPENSES, AND that all of the seed data from the fixtures file has been correctly added to the expenses property and has them on it since that is the exact same data we set on FB in the beforeEach()
+            type: "SET_EXPENSES",
+            expenses
+        7) Call done()
 
 
 

@@ -6,10 +6,7 @@ import ExpenseListFilters from './expenseListFilters';
 import ExpensesSummary from './expensesSummary';
 
 
-
-
 const ExpenseDashboardPage = () => {
-    
    
 return ( 
     <div>

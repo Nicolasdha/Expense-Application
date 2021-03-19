@@ -1,14 +1,14 @@
 import expensesReducer from '../../reducers/expenses';
-import Expenses from '../fixtures/expenses'
+import expenses from '../fixtures/expenses'
 import moment from 'moment';
 
 
 test('should set state to default', () =>{
-    const reducer = expensesReducer(undefined, {
+    const state = expensesReducer(undefined, {
         type: '@@INIT'
     });
 
-    expect(reducer).toEqual([]);
+    expect(state).toEqual([]);
 });
 
 
@@ -21,24 +21,24 @@ test('should dispatch ADD_EXPENSE', () =>{
         createdAt: 100,
         id: 2
     }
-    const reducer = expensesReducer(Expenses, {
+    const state = expensesReducer(expenses, {
         type: 'ADD_EXPENSE',
         expense 
      });
 
-     expect(reducer).toEqual([...Expenses, expense]);
+     expect(state).toEqual([...expenses, expense]);
 });
 
 
 test('should dispatch REMOVE_EXPENSE', () =>{
     const action = {
         type: 'REMOVE_EXPENSE',
-        id: Expenses[0].id
+        id: expenses[0].id
     };
 
-    const reducer = expensesReducer(Expenses, action);
+    const state = expensesReducer(expenses, action);
 
-    expect(reducer).toEqual([Expenses[1], Expenses[2]]);
+    expect(state).toEqual([expenses[1], expenses[2]]);
 });
 
 
@@ -48,18 +48,18 @@ test('should not remove an expense if id not found', () =>{
         id: "500"
     };
 
-    const reducer = expensesReducer(Expenses, action);
+    const state = expensesReducer(expenses, action);
 
-    expect(reducer).toEqual(Expenses);
+    expect(state).toEqual(expenses);
 });
 
 
 
 
 test('should dispatch EDIT_EXPENSE', () =>{
-    const reducer = expensesReducer(Expenses, {
+    const state = expensesReducer(expenses, {
         type: 'EDIT_EXPENSE',
-        id: Expenses[0].id,
+        id: expenses[0].id,
         updates: {
             id: '1',
             description: 'Edited Test1',
@@ -69,15 +69,15 @@ test('should dispatch EDIT_EXPENSE', () =>{
         }
      });
 
-     expect(reducer).toEqual([{
+     expect(state).toEqual([{
         id: '1',
         description: 'Edited Test1',
         note: '',
         amount: 500,
         createdAt: 500
     }, 
-    Expenses[1], 
-    Expenses[2]]);
+    expenses[1], 
+    expenses[2]]);
 });
 
 
@@ -85,7 +85,7 @@ test('should dispatch EDIT_EXPENSE', () =>{
 
 
 test('should not dispatch EDIT_EXPENSE if id not found', () =>{
-    const reducer = expensesReducer(Expenses, {
+    const state = expensesReducer(expenses, {
         type: 'EDIT_EXPENSE',
         id: '500',
         updates: {
@@ -97,5 +97,16 @@ test('should not dispatch EDIT_EXPENSE if id not found', () =>{
         }
      });
 
-     expect(reducer).toEqual(Expenses);
+     expect(state).toEqual(expenses);
+});
+
+test("should set expenses on state and any that exist on state should be gone", () =>{
+    const action = {
+        type: "SET_EXPENSES",
+        expenses: [expenses[1]]
+    }
+    
+     const state = expensesReducer(expenses, action);
+
+     expect(state).toEqual([expenses[1]]);
 });

@@ -6,7 +6,6 @@ import getVisibleExpenses from '../selectors/expenses';
 
 
 export const ExpenseList = (props) => {
-    
     return (
         <div>
             {
@@ -25,3 +24,6 @@ const mapStoreToProps = (state) =>{
 };
 
 export default connect(mapStoreToProps)(ExpenseList);
+
+
+

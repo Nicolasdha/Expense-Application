@@ -16,11 +16,13 @@ export default (state = [], action ) =>{
                     return {
                         ...each,
                         ...action.updates
-                    }
+                    };
                 } else {
                     return each
-                }
-            })
+                };
+            });
+        case 'SET_EXPENSES':
+            return action.expenses;
         default:
             return state;
     };
