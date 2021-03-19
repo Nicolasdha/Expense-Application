@@ -28,7 +28,7 @@ Languages:
 Frameworks/Utilities:
 * React^17.0.1
 * Redux
-* Express
+* ExpressJS
 * Jest
 * Enzyme
 

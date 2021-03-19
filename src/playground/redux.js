@@ -3972,7 +3972,125 @@ Copy/paste all of code, and change to default values in dummy data and rename va
 /*
 ---------------- CREATING A TEST DATABASE -------------------
 
-In all of the tests above we were writing to the actual DB for the app so we need to create a test DB to run with our tests 
+In all of the tests above we were writing to the actual DB for the app so we need to create a test DB to run with our tests with all of the CRUD ops b.c we are going to need test data to fetch, remove, etc and will be constatnly wiping the database 
+
+
+In the firebase file all of the config properties will be changes to variables and if in production we will use one DB and if in dev than the other DB 
+
+There is an environment variable that we need to get and manipulate to get this done = process.env.NODE_ENV - this is environment vari that stores the env that you are currently in, this is auto set for us in Heroku equal to 'production' so we need to be able to set this in our test env with either "test"(for test) "production"(for prod) "undefined"(for dev)
+
+So we are going to change the test script in package.json. No crossOS script to run on all OS's so going to use an NPM module that will allow us to set the environment variable regardless of OS = NPM cross-env
+
+1) Need to install yarn add --dev cross-env@latest
+    - --dev flag b/c only using for the test script 
+
+2) integrate into package.json in the "test" script
+    - Upfront we need to run the tool so add cross-env and before the jest cmnd we can set up a bunch of environment variables using KEY=value -> NODE_ENV='test'
+    - This is the only one that needs to change b/c this is auto set by Heroku as "production", and it will be left off so undefined if development
+3) Take advantage of the NODE_ENV variable in webpack.config. Above the function access process.env.NODE_ENV and set equal to itself OR if it doenst exist set it to the string 'development'
+    - This will be the string production on heroku / test in test environment // and development if neiher of those
+4) Add conditional logic to what the variable process.env.NODE_ENV is set equal to
+
+    if(process.env.NODE_ENV === 'test'){
+
+    }else if(process.env.NODE_ENV === 'development'){
+        
+    }
+
+BUT we are not going to put values right inside the conditioal logic b/c we are giving them all the secrets like apiKey etc , so going to create two seperate files that will be in .gitignore and will read those files in in the conditional statements
+
+5) In the root dir make two new files .env.test (for test env variables) and .env.development (heroku sets for production)
+
+6) In env.development - take all of the properties on the config object in firebase.js and copy/paste them over 
+    - Need to set up those KEY=value pairs again, set up env variables (just like NODE_ENV), but setting it up for these properties. Prefix all with FIREBASE_API_KEY and then cut/pasting the values over to the new property using the = not : b/c we are using the = no quotes! Just the value so no "string" 
+
+7) Copy/paste all over to the .env.test and then change values to point to a different DB
+8) Create new FBDB and get its config object
+9) Go to the rules and allow all access by setting .read and .write to true in the rules
+10) Add to the webpage to get the new config object and swap out all values
+11) Install dotenv - which just reads the .env files and sets up process.env.allValuesInTheCorrectfile
+    - yarn add dotenv
+12) Now add it into the if statments in webpack.config to run this code if and only if we are in the correct environment. In the first if statement for 'test' environment
+    require('dotenv') - this returns an object with a .config() method which we have to pass in our options object - by default it looks for an .env file and we have multiple so we need to set up its path: property setting it equal to the file name
+        require('dotenv').config({path: '.env.test'});
+
+Now all of the .env file variables will get read and set on process.env BUT the NODE_ENV variable do not get passed to the client side JS b/c it would create a lof of security issues. SO need to manually pass them through. Pass 6 vaules down to client side JS in bundle.js
+
+13) We are going to be using a built in webpack plugin to get this done. In the plugins array after CSSExtract we put
+    new webpack.DefinePlugin -- this lets us define an object we can define the variables we want to pass though 
+14) Need to require webpack at the top of file since we are using it now
+    const webpack = require('webpack');
+15) In DefinePlugin - need to provude the thing we are trying to define in quotes 
+    'process.env.FIREBASE_API_KEY'   this is the vairable we are going to be setting in the client side JS and going to get its value from the same variable but in the NODE environment
+        'process.env.FIREBASE_API_KEY': process.env.FIREBASE_API_KEY
+
+16) This alone WONT work b/c how DefinePlugin works - if take process.env.FIREBASE_API_KEY and replace it in the firebaseConfig object in firebase.js and refernce that variable in the apiKey: property , 
+
+        const firebaseConfig = {
+            apiKey: process.env.FIREBASE_API_KEY,
+            ...firebaseConfig
+        };
+
+the DefinePlugin will look around our project for "process.env.FIREBASE_API_KEY" and it will do a find/replace and it will replace that apiKey: string with the process.env.FIREBASE_API_KEY value which means that the value of process.env.FIREBASE_API_KEY (the string stored in that variable ) will not actually get set. So if the string 'test' is the value of "process.env.FIREBASE_API_KEY"
+
+        "process.env.FIREBASE_API_KEY": 'test'
+
+DefinePlugin will replace process.env.FIREBASE_API_KEY with test - the content of the string, not the string itself so it will set the apiKey:  to test NOT 'test'
+
+    const firebaseConfig = {
+                apiKey: test,
+                ...firebaseConfig
+            };
+BUT we want it to set it to the string test NOT access the test variable 
+
+   const firebaseConfig = {
+            apiKey: "test",
+            ...firebaseConfig
+        };
+
+SO need to add two sets of quotes  "process.env.FIREBASE_API_KEY": "'test'"
+
+Can call JSON.stringify() method that will automatcially add the second set of quotes 
+
+        'process.env.FIREBASE_API_KEY': JSON.stringify(process.env.FIREBASE_API_KEY)
+
+17) Do this for all other variables that we want to pass through
+    new webpack.DefinePlugin({
+        "process.env.FIREBASE_API_KEY" : JSON.stringify(process.env.FIREBASE_API_KEY),
+        "process.env.FIREBASE_AUTH_DOMAIN" : JSON.stringify(process.env.FIREBASE_AUTH_DOMAIN),
+        "process.env.FIREBASE_DATABASE_URL" : JSON.stringify(process.env.FIREBASE_DATABASE_URL),
+        "process.env.FIREBASE_PROJECT_ID" : JSON.stringify(process.env.FIREBASE_PROJECT_ID),
+        "process.env.FIREBASE_STORAGE_BUCKET" : JSON.stringify(process.env.FIREBASE_STORAGE_BUCKET),
+        "process.env.FIREBASE_MESSAGING_SENDER_ID" : JSON.stringify(process.env.FIREBASE_MESSAGING_SENDER_ID),
+        "process.env.FIREBASE_APP_ID" : JSON.stringify(process.env.FIREBASE_APP_ID),
+    })
+
+18) Still not using these values SO in the firebase.js firebaseConfig object we need to do the exact same thing
+        const firebaseConfig = {
+            apiKey: process.env.FIREBASE_API_KEY,
+            authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+            databaseURL: process.env.FIREBASE_DATABASE_URL,
+            projectId: process.env.FIREBASE_PROJECT_ID,
+            storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+            messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+            appId: process.env.FIREBASE_APP_ID,
+            measurementId: "G-LS6WEZ0REY"
+        };
+Now we are correctly setting/using the env variables. This will only work for the dev setup b/c one more changes needs to be done for test setup 
+
+19) In jest.config file need to add one thing on the object 'setupFiles': - this is an array of files to run to set up the test cases. We are going to be using this to grab the env variables 
+    - Set 'setupFiles': equal to the path - have access to a special pattern <rootDir> which Jest repalces with the root dir of the app and add "<rootDir>/src/tests/setupTests.js"
+20) We already have this setupTests.js file in src/tests it was created when we originally set up Enzyme to work with the Enzyme adapter 
+    - Just need to import dotenv and run this line
+    import DotEnv from 'dotenv';
+    DotEnv.config({path: '.env.test'});
+
+
+To TEST: Wipe both DBs and run test cmnd in terminal 
+
+yarn test  --watch 
+
+And hopefully the test data gest added to the test DB and not the regular one 
 
 
 

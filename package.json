@@ -9,7 +9,7 @@
     "build:dev": "webpack",
     "build:prod": "webpack --env production",
     "dev-server": "webpack-cli serve --mode development",
-    "test": "jest --config=jest.config.json",
+    "test": "cross-env NODE_ENV=test jest --config=jest.config.json",
     "start": "node server/server.js ",
     "heroku-postbuild": "yarn run build:prod"
   },
@@ -53,6 +53,8 @@
   "devDependencies": {
     "@wojtekmaj/enzyme-adapter-react-17": "^0.4.1",
     "chalk": "^4.1.0",
+    "cross-env": "^7.0.3",
+    "dotenv": "^8.2.0",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.6",
     "jest": "^26.6.3",
