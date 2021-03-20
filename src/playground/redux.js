@@ -4249,5 +4249,26 @@ This is for the FBDB:
             done();
 
 
+------------------- EDIT EXPENSES -------------
+
+Go through the same steps need to look for eact expense in FBDB using the id passed in as argumnet, using .update passing in the updates vaiable adding a .then call to dispatch edit expense to change redux. Need to add return at the beginnging of the database call
+
+
+MAke test case define updates (can just be one value or whole object) and the id, use store to dispatch startEditEpense passing in the id, updates and chain on a .then to do something after the data is synced now make sure everything actually happened by making assertion about the action and what it was called with type, id, updates defined above
+
+make sure data changed on FB bu fatching data and looking at value 
+
 
  */
+
+
+/*
+ ------------------ USER ACCOUNTS AND AUTHENTIFICATION -------------
+
+ Data assco with user accounts
+
+----------------- CREATING LOGIN PAGE --------------------------
+
+FB provides us with methods to use for auth/login/out but we need to create a login-out page/button so need to create a login page component that will be shown at root of app and move the dashboard component to /dashboard since it wont be the first page 
+
+*/

@@ -12,7 +12,6 @@ const routes = (
 
     <BrowserRouter>
         <Route path="/" component={ExpenseDashboardPage}/>
-    
     </BrowserRouter>
 
 );

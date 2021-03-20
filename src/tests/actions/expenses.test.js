@@ -140,13 +140,14 @@ test('should fetch the expenses from FB', (done)=>{
 });
 
 
-test('should setup startRemoveExpense and dispatch removeExpense', (done) =>{
-    const store = createMockStore();
-    store.dispatch(startRemoveExpense({id: expenses[0].id})).then(()=>{
+test('should remove expense from firebase and redux', (done) =>{
+    const store = createMockStore({});
+    const id = expenses[2].id
+    store.dispatch(startRemoveExpense({ id })).then(()=>{
         const actions = store.getActions();
         expect(actions[0]).toEqual({
             type: 'REMOVE_EXPENSE',
-            id: expenses[0].id
+            id
         });
         return database.ref(`expenses/${id}`).once('value').then((snapshot)=>{
             expect(snapshot.val()).toBeFalsy();
@@ -156,17 +157,33 @@ test('should setup startRemoveExpense and dispatch removeExpense', (done) =>{
 });
 
 
-// test('should setup startEditExpense and dispatch editExpense', (done) =>{
-//     const store = createMockStore();
-//     store.dispatch(startEditExpense(expenses[0].id, expenses[0])).then(()=>{
-//         const actions = store.getActions();
-//         expect(actions[0]).toEqual({
-//             type: 'EDIT_EXPENSE',
-//             updates: expenses[0]
-//         });
-//         done();
-//     });
-// })
+test('should edit expense from firebase and redux', (done) =>{
+    const store = createMockStore({expenses: expenses[1]});
+    const id = expenses[1].id
+    const updates = {
+        description: 'pooping',
+        amount: 33242,
+        createdAt: 123123131,
+        note: "expensive poop",
+        id
+    }
+
+    store.dispatch(startEditExpense(id, updates))
+    .then(()=>{
+        const actions = store.getActions();
+        expect(actions[0]).toEqual({
+            type: 'EDIT_EXPENSE',
+            id,
+            updates
+        });
+       return database.ref(`expenses/${id}`).once('value')})
+       .then((snapshot)=>{
+           expect(snapshot.val()).toEqual({
+               ...updates
+           });
+       done();
+    });
+})
 
 
 
