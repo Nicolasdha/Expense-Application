@@ -4154,7 +4154,7 @@ Now that we have dummy data go into actions/expenses.js going to be adding two n
 
     A) Arrow function implicitly return an object with a type: SET_EXPENSES on it and provide the data expenses and put in on the expenses property so ES6 shorthand expenses: expenses
 
-    const setExpenses = (expenses ) => ({
+    const setExpenses = (expenses) => ({
         type: "SET_EXPENSES",
         expenses
     })
@@ -4206,3 +4206,48 @@ Now that we have dummy data go into actions/expenses.js going to be adding two n
 
 
 */
+
+
+
+
+
+/**
+ 
+------------------ REMOVE EXPENSES -------------
+
+Create an async action that wipes the data from FBDB and wipes it from redux, similar to add and fetch
+
+
+//START_REMOVE_EXPENSE
+export const startRemoveExpense = ( { id }) =>{
+    return (dispatch) =>{
+        return database.ref(`expenses/${id}`).remove().then((ref)=>{
+            dispatch(removeExpense({id: id}))
+        })
+    }
+}
+ change everywhere removeExpense is used in editExpense component to startRemoveExpense
+
+ In the test case we need to set it up like normal and check the mock store but then we need to check the FBDB as well to make sure the expense was in fact removed by accessing its snapshot to make sure it doesnt exist b/c using .val() on a snapshot that doesnt exist you will get null back so can expect the .val() toBeFalsy();
+
+ This is for the redux store:
+
+  test('should setup startRemoveExpense and dispatch removeExpense', (done) =>{
+    const store = createMockStore();
+    store.dispatch(startRemoveExpense({id: expenses[0].id})).then(()=>{
+        const actions = store.getActions();
+        expect(actions[0]).toEqual({
+            type: 'REMOVE_EXPENSE',
+            id: expenses[0].id
+        });
+
+This is for the FBDB:
+
+
+  return database.ref(`expenses/${id}`).once('value').then((snapshot)=>{
+            expect(snapshot.val()).toBeFalsy();
+            done();
+
+
+
+ */

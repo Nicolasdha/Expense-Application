@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { editExpense, removeExpense } from '../actions/expenses';
+import { startEditExpense, startRemoveExpense } from '../actions/expenses';
 import ExpenseForm from './expenseForm'
 
 
@@ -8,14 +8,14 @@ import ExpenseForm from './expenseForm'
 export class EditExpensePage extends React.Component {
 
     onSubmit = (expense) =>{ 
-            this.props.editExpense(this.props.match.id, expense)
+            this.props.startEditExpense(this.props.match.id, expense)
             this.props.history.push('/')
     };
 
     onRemove = () => {
         // const removeConfirmation = window.prompt('Are you sure you want to remove? Type Y to confirm')
         // if(removeConfirmation === 'yes'.toLowerCase() || 'y'.toLowerCase()){
-            this.props.removeExpense( {id: this.props.match.id} )
+            this.props.startRemoveExpense( {id: this.props.match.id} )
             this.props.history.push('/')
         // };
      };
@@ -42,8 +42,8 @@ const mapStoreToProps = (state, props) =>({
 
 
 const mapDispatchToProps = (dispatch) => ({
-    editExpense: (id, expense) => dispatch(editExpense(id, expense)),
-    removeExpense: (id)=> dispatch(removeExpense(id))
+    startEditExpense: (id, expense) => dispatch(startEditExpense(id, expense)),
+    startRemoveExpense: (id)=> dispatch(startRemoveExpense(id))
 });
 
 
@@ -60,7 +60,7 @@ export default connect(mapStoreToProps, mapDispatchToProps)(EditExpensePage);
 //         <ExpenseForm
 //             match = {match}
 //             onSubmit = {(expense) =>{ 
-//                 props.dispatch(editExpense(match.id, expense))
+//                 props.dispatch(startEditExpense(match.id, expense))
 //                 props.history.push('/')
 //             }}
 //             />
@@ -68,7 +68,7 @@ export default connect(mapStoreToProps, mapDispatchToProps)(EditExpensePage);
 //             onClick={() => {
 //                 const removeConfirmation = window.prompt('Are you sure you want to remove? Type Y to confirm')
 //                 if(removeConfirmation === 'yes'.toLowerCase() || 'y'.toLowerCase()){
-//                     props.dispatch(removeExpense( {id: match.id} ))
+//                     props.dispatch(startRemoveExpense( {id: match.id} ))
 //                     props.history.push('/')
 //                 }
 //              }}
