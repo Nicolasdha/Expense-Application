@@ -12,6 +12,7 @@ import getVisibleExpenses from './selectors/expenses';
 import { startSetExpenses } from './actions/expenses';
 import './firebase/firebase';
 import { firebase } from './firebase/firebase'
+import { login, logout } from './actions/auth';
 
 const store = configureStore();
 
@@ -39,6 +40,8 @@ const renderApp = () =>{
 
 firebase.auth().onAuthStateChanged((user)=>{
     if(user){
+        console.log(user)
+        store.dispatch(login(user.uid));
         store.dispatch(startSetExpenses()).then(()=>{
             renderApp();
             if(history.location.pathname === '/'){
@@ -47,6 +50,7 @@ firebase.auth().onAuthStateChanged((user)=>{
         });
     } else{
         renderApp();
+        store.dispatch(logout())
         history.push('/');
     };
 });

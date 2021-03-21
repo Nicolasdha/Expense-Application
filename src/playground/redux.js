@@ -4372,7 +4372,7 @@ in AppRouter - by default if we use BrowserRouter behind the scenes React-Router
             A) renderApp()
         2) IF user is already viewing the app and login/logout we dont want to rerender everything, only want to render if we are visiting the app for the FIRST time either one time in the if(user) or the else{}
             A) Create a variable set to a boolean to track if the app has rendered and flip if it has
-                const hasRendered = false;
+                let hasRendered = false;
             B) THEN create a function renderApp which will be a function that renders the application but does it CONDITIONALLY only doing it if hasRendered is false. We put in the renderDOM duplicate code there and switch the boolean to true when the conditional code runs
                 const renderApp = () =>{
                 if(!hasRendered){
@@ -4382,11 +4382,47 @@ in AppRouter - by default if we use BrowserRouter behind the scenes React-Router
             C) Call renderApp below in the authenticated conditional statment
 
 
-
-
-
-
     B) Need to only redirect user when theyre on the login page b/c if logged in and refreshed the page it will auto take them to the dashboard page when they dont want that
+        1) Put in an IF statment that only pushes them to the /dashbord if they are onthe login page and can access currecnt location with history.location.pathname === "/"
+         if(history.location.pathname === '/'){
+                history.push('/dashboard');
+            };
+
+
+
+------------- CREATING TRULY PRIVATE ROUTES ---------------
+
+As of now logged out users can still visit create/edit pages even if theyre not logged in so we need to set up 
+
+So need to store something in redux correlated with authentification - the user.uid which we have access to from user which is passed in by Firebase user.uid
+
+Than can use the value throughout the app to figure out if we are logged in and as who 
+
+Create a brand new reducer! For authentication auth.js. B/c reducer is actually what does something from the action - need to create an action as well?
+
+Reducer will just be the pure function, as always. The big pic goal is to have the reducer handle the actions, one for logging in and one for logging out.
+
+1) Create and default export the pure function
+    A) Need to provide the default state, as an argumnet
+        -For our purposes we are going to set state's default to an empty object, which we will add a property on when the user is authenticated and clear the object to an empty object when user is logged out
+        - Can store the user.uid as the state which will work but will make it an object just in case want to store other things on the object later on 
+    B) Need to provide the action as an argument
+        - This is the argument that is being dispatched 
+2) Set up switch statement with different cases based off of the action.type
+    A) case 'LOGIN: we are going to return the new state which will be an object with uid: as a property with the value we are going to get from action.uid
+        - So when dispatch login we have to pass the uid along
+    B) case "LOGOUT": just return an empty object
+    C) case default which will just return the current state 
+3) Since the reducers are set up we need actions to couple them and dispatch them with. Creating functions for action.type: LOGIN and LOGOUT
+    A) export named login taking the uid as the argument and implicitly return an object with the type: "LOGIN" and the uid: uid so just uid 
+    B) export named logout no argumnet just implicitly returning object with type: "LOGOUT"
+4) We have actions in place and reducer in place we just need to connect the reducer to the redux store and then actually dispatch login and logout accordingly. So in the store/configureStore add the auth reducer onto the store and import it
+5) Need to disaptch login/logout accordingly in app.js to make sure we have most uptodate info in the store, the id if theyre logged in and nothing if loggd out. These dispatches live inside the onAuthStateChanged if statment, and NOT in the startLogin and startLogout like we have done with other async actions. This is because the onAuthStateChanged callback will also run when a user vistes the website and auto triggers to get set to let us know if were loggedin/out, BUT if we only dispatch login/logout inside the async actions startLogin and startLogout the dispatch(login/logout) will only happen once when the user explicitly logs in and out, and not when they impliclty log in by jsut going to the webpage again while logged in 
+    A) Import both actions
+    B) Dispatch them by store.disptch(login(user.uid)) passing in the uid as the argumnet
+    and no argumnet to dispatch(logout())
+    C) Check redux store dev tool to make sure the uid was set and wiped when logout
+6) Add test case for actions.logout/login AND for the reducer
 
 
 */
