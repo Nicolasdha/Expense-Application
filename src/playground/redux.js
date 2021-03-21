@@ -4332,5 +4332,61 @@ Need to switch up header test case b/c now it is a connected component so we nee
 
 Need to make sure we are exporting Header/Login Page as a named function as well as the default to be able to test the unconnected header component
 
+Need to seperate the snapshot and button click toHaveBeenCalled spy test into two different test cases b/c the button click will return a promise which will then take the place of the MockFunction (spy) in the snapshot and fail the snapshot
+
+----------------- WHAT DO WE DO WHEN LOGIN/LOGOUT --------
+Need to focus on the functon in app.js to get more appropriate things to do when login/logout.
+
+When login we want to redirect to the dashboard, and fetch their expenses and logout redirect to login page
+
+Redirect user using history.push('/') - BUT history is passed into the component b.c that component has a route but the problem is in app.js we are not in a component that has a route we just have some code and want to access the history API -  so to get the history API outside of a component we are going to make changes to the AppRouter
+
+in AppRouter - by default if we use BrowserRouter behind the scenes React-Router is going some work for us, it is creating an instance of <Browser History/> and it registering it with our new Router BUT we can go thru the process manually, need to install one tool and add a few lines of code but once have that in place we can use it anywhere not just in the context of a component 
+
+1) install the module react-router is already using the behind the scences - npm history yarn add history@4.10.1 (need this b/c latest breacks with current version of react router dom)
+
+2) Use it in the AppRouter: import { createBrowserHistory } from 'history';
+
+
+3) createBrowserHistory is the function we are going to use to create out own history and make changes to react router once we have created it
+
+4) const history = createBrowserHistory();
+
+5) Currently we are crating this hisotry on our own and not integrating it with our router, we are using BrowserRouter which uses browserrouter history by default SO what we are going to do is SWITCH from <BrowserRouter/> TO the regular <Router/>
+    - When we make this switch we are allowed to provide our own hisotry value as a prop named history and seting it equal to the custom hisotry in <Router />
+    - NO other changes nessessary just have access to the history variable which we need to export as named
+6) Go to app.js and actually import and use the hisotry to redirect accordingly in the in the else() history.path('/')
+    - The logout case is easy but with the login page we ned to fetch the right persons expenses
+7) Login 
+   
+    A) When a new user logs in we need to make sure we are actually fetching their expenses so get it done inside of the if() statement by bringing in the store.dispatch(startSetExpenses) lines inside of the if(user){} BUT this will cause them to sit on the loading screen until they login which they cant b/c no login button so need to render the app regardless just not fetch their expenses
+        else{
+        ReactDOM.render(jsx, document.getElementById('app'))
+        history.push('/');
+        }
+
+        WITHOUT the async call to get the expenses
+
+        BUT this causes some problems:
+        1) duplicate code that we can break into a function call
+            A) renderApp()
+        2) IF user is already viewing the app and login/logout we dont want to rerender everything, only want to render if we are visiting the app for the FIRST time either one time in the if(user) or the else{}
+            A) Create a variable set to a boolean to track if the app has rendered and flip if it has
+                const hasRendered = false;
+            B) THEN create a function renderApp which will be a function that renders the application but does it CONDITIONALLY only doing it if hasRendered is false. We put in the renderDOM duplicate code there and switch the boolean to true when the conditional code runs
+                const renderApp = () =>{
+                if(!hasRendered){
+                    ReactDOM.render(jsx, document.getElementById('app'));
+                    hasRendered = true;}}
+
+            C) Call renderApp below in the authenticated conditional statment
+
+
+
+
+
+
+    B) Need to only redirect user when theyre on the login page b/c if logged in and refreshed the page it will auto take them to the dashboard page when they dont want that
+
 
 */
