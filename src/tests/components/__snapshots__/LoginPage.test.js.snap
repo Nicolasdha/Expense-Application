@@ -5,7 +5,9 @@ exports[`should render login page correctly 1`] = `
   <p>
     LOGIN PAGE
   </p>
-  <button>
+  <button
+    onClick={[MockFunction]}
+  >
     Login
   </button>
 </div>

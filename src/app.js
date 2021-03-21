@@ -14,6 +14,8 @@ import { startSetExpenses } from './actions/expenses';
 
 import './firebase/firebase';
 
+import { firebase } from './firebase/firebase'
+
 const store = configureStore();
 
 const unsubscribe = store.subscribe(() =>{ 
@@ -27,7 +29,13 @@ const jsx = (
     <Provider store={store}>{AppRouter}</Provider> 
 );
 
-
+firebase.auth().onAuthStateChanged((user)=>{
+    if(user){
+        console.log('logged in')
+    } else{
+        console.log('logged out')
+    }
+})
 
 ReactDOM.render(<p>Loading...</p>, document.getElementById('app'))
 

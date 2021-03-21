@@ -7,7 +7,7 @@ import CreateExpensePage from '../components/createExpense'
 import EditExpensePage from '../components/editExpense'
 import HelpPage from '../components/helpPage'
 import NotFoundPage from '../components/404'
-import {LoginPage} from '../components/LoginPage'
+import LoginPage from '../components/LoginPage'
 
 
 

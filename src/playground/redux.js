@@ -4271,4 +4271,66 @@ make sure data changed on FB bu fatching data and looking at value
 
 FB provides us with methods to use for auth/login/out but we need to create a login-out page/button so need to create a login page component that will be shown at root of app and move the dashboard component to /dashboard since it wont be the first page 
 
+1) Create the LoginPage component as stateless functional comp
+2) In AppRouter change the routes to '/' to login and '/dashboard' to dashboard
+3) Make snapshot test of loginpage and change header snapashot over 
+
+--------------------- AUTHENTIFICATION ------------
+
+-------------------------------- LOGGING IN -------------
+Need to enable authentification in the FB dashboard 
+1) Authentication sign-in method - google
+2) In firebase.js need to add another thing creating an instance of a PROVIDER - A provider is a way to provide authentication - google/fb/github/etc one -just using google here 
+    - create a const googleAuthProvider set equal to an instance of a new provider with no argumnet (we can have github provider to authenticate with github )
+    - in docs/reference/web reference/firebase.auth
+        const googleAuthProvider = new firebase.auth.GoogleAuthProvider();
+3) We are ready to start authenticating - export googleAuthProvider as named export 
+4) Focus on making somesort of function call that will start auth process
+5) First we want to see how we can track authentication - would be nice to know if auth worked/failed depending, so inside app.js add some code that will run some callback if FB actually logs in or if user logs out, will refactor and move this stuff around later 
+    - import firebase in app.js and below access firebase.auth() calling as function to get all authentication realted funcitonality which has a method .onAuthStateChanged(CBF) - this runs the CBF when auth state is changed, in the CBF the 'user' is provided as the first argumnet, so if we want to confim if there is a user we can set up if(user){} statement - if there is a user we know they just logged in and else(){} for if there is no user we know they just logged out 
+
+    firebase.auth().onAuthStateChanged((user)=>{
+        if(user){
+            console.log('logged in')
+        } else{
+            console.log('logged out')
+        }
+    })
+
+    - setting this up first to make sure that the code we are writing actually triggers the authentification realated functionality and we see the C.Ls to the screen 
+6) Now actually make a call to log into a google account in the login page component AND a new action to handle it src/actions/auth.js, start off with one thing that we export that we will be adding more onto later - this function will return another function so this will be async action in the second function is where we will get access to dispatch. Inside we are trying to call a firebase realted method so need to import a reference to firebase and the googleAuthProvider
+    - With an Auth Provider we create the auth provider and then we pass it into a function and this is what starts the process
+    A) return inside the second function to continue the promise chain allowing others to attach onto it, access firebase calling auth() on it and using the method .signInWithPopup() - this method takes the provider as the first and only arugment googleAuthProvider - i want to sign into my account and use popup system and want to log in with google realted services 
+
+        export const startLogin = () =>{
+            return (dipsatch) =>{
+                return firebase.auth().signInWithProvider(googleAuthProvider);
+            }
+        }
+    B) Now this file is done and we just need to wire up the LoginPage popup button to actually fire this component, and then once wired up we can test out function
+    C) Inside LoginPage page file using connect() and the new action we just created. B/c this is an action and we want to dispatch the action we need to connect(undefined, mapDispatchToProps) to get dispatch and want to dispatch something
+        1) mapDispatchToProps = (dispatch) and implicitly return an object with one prop startLogin that is set to a value of an arrow function that implicitly returns a dispatch call to startLogin 
+        2) Wire up connect with a default export with undefined as the first arugment
+        3) Wire up the onClick for the button destructuring the startLogin prop in the arugment of the component and referenceing it in the JSX
+        4) make sure importing default function in AppRouter 
+7) Now should be able to test this out by running dev server and refresh onto login page - in console we see that the function that is keeping track of the state of authentication has already fired since when we first visit the app firebase in the browser tries to communicate with the servers to see if we are already logged in, if we are than we can view prvt data - use the login button with google acct and see logged in in console so its working - by default now we are still logged in if refresh page it will stay logged in
+8) 
+
+
+
+
+--------------- LOGGING OUT ---------------
+
+1) Make logout button inside of header component since this will contain our private navigation once someone is signed in
+2) Need to create an async action to be able to signout in the actions/auth that is the same as signin
+3) Wire up header to use it like above with connect....
+
+
+---------- TEST CASES FOR AUTH ---------------
+
+Need to switch up header test case b/c now it is a connected component so we need to pass in the startLogout as a prop and make a spy to make sure it fires and update snapshot
+
+Need to make sure we are exporting Header/Login Page as a named function as well as the default to be able to test the unconnected header component
+
+
 */
