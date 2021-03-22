@@ -49,7 +49,6 @@ export class ExpenseListFilters extends React.Component {
                     </div>
 
                     <div className="input-group__item">
-                        <label htmlFor="sortBy" >Sort By</label>
                         <select
                             className="select"
                             name="sortBy"
@@ -99,3 +98,6 @@ const mapDispatchToProps = (dispatch) =>({
 })
 
 export default connect(mapStoreToProps, mapDispatchToProps)(ExpenseListFilters);
+
+
+                        // <label htmlFor="sortBy" >Sort By</label>

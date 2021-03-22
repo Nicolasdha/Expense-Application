@@ -10,8 +10,8 @@ const ExpenseDashboardPage = () => {
    
 return ( 
     <div>
-        {<ExpenseListFilters/>}
         {<ExpensesSummary/>}
+        {<ExpenseListFilters/>}
         {<ExpenseList/>}
     </div>
     );

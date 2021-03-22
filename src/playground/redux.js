@@ -4632,9 +4632,17 @@ Add the app's url to the authorized domain section
 
 ------------- BABEL POLYFILL ------------
 
-For support in older browsers
+For support in older browsers - (browser stack is good to emulate other browsers but expensive)
 
+Add in methods and stuff that older browsers odont have
 
+yarn add babel-polyfill
 
+THEN in webpack.config we are changing the entry prop
 
+Entry: can be a string but it also can be an array of strings as multiple entry points, so add babel-polyfil as the FIRST item 
+
+ entry: ['babel-polyfill', './src/app.js'],
+
+Set it and forget it, and gives a wider range of support
 */

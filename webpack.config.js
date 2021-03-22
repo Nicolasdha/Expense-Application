@@ -90,7 +90,7 @@ module.exports = (env) =>{
     const isProduction = (env.production === true );
     
     return {
-        entry: './src/app.js',
+        entry: ['babel-polyfill', './src/app.js'],
         output: {
         // needs two things: path and filename
             path: path.join(__dirname, 'public', 'dist'),
