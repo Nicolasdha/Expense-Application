@@ -1,24 +1,29 @@
-html{
-    font-size: 62.5%;
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 62.5%;
+}
+
+body {
+  color: $dark-grey;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: $m-size;
+  line-height: 1.6;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+.is-active {
+  font-weight: bold;
 }
 
 /* Since 1rem is 16px * .625 = 10px can work in bases of 10 so like 
 2.2rem would be 22px*/
-
-body {
-    background: seashell;
-    font-family: Helvetica, Arial, sans-serif;
-    font-size: $m-size; // 16px but dynamic for accessability
-}
-
-.is-active {
-    color:rgb(241, 28, 28)
-}
-
-hr {
-    width: 20%;
-    height: 2px;
-    background-color: black;
-    margin: 5px;
-    margin-left: 0;
-};

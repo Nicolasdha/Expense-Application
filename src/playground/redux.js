@@ -4537,5 +4537,104 @@ In src/actions/expenses is where we write to the ref(expenses ), we want to swit
     B) In BeforeEach()make sure that we are referenceing the database to the correct location now in `users/${uid}/expenses
     C) Now need to change all the test cases that actually communicate with FB to check if they were CRUD'd to reference the right spot to make sure querying from the correct place we ALSO need to make sure there is a uid set in the store
     D) Place an object in the createMockStore to be able to access it. The auth:{} object will have a property uid: uid to make sure startRemoveExpense and others have the correct stuff needed to do the test case
+    E) Going to use { auth: { uid }} everywhere so break out into own variable defaultAuthState
+    F) Even in the fetch case we need to pass the defaultAuthSTate
+
+        test('should fetch the expenses from FB', (done)=>{
+            const store = createMockStore(defaultAuthState);
+
+
+
+
+The whole database is still readable by anyone in the rules its just set to true 
+So need to lock down the data in the rules to make data private unless you have the user.id that it was written under 
+
+In FB rules page changing read/write to false so by default no one can read/write to the FBDB, 
+
+Then we are going to allow ppl to read and write but only to specific parts of the DB
+
+1) Define "users":{} in the rules object below ".write" - Here we want to get the nested stuff like the space where the particular user's id comes into play - but we cant just name the ID since its different for each user we need a way to get the id in a variable
+    A) In FBDB we define variable by "$variable" = "$user_id" - this is going to be dynamic it will match everything inside of users and going to be able to set up rules for those things
+    B) On the "$user_id" make an object as its value and define ".read" and ".write" in side there setting the values to a conditional to make sure the authenticated users id is the same as "$user_id" if it is the user is trying to read/write to their part of the DB and not then not their part
+        - Add the check "$user_id === auth.uid" - we do have access to auth and the uid that is on it 
+        - have rules in place now that only user that is logged in can CRUD the data 
+    C) Publish. As build different apps take advantage of the rules playground cause have trouble testing all edge cases
+        - Play with playground and Authenticated with the different paths, no one can read/write to the root but to their data inside users/uid(that is provided) - yes they can if Authenticated
+By doing this we have restricted users to only their data 
+*/
+
+/*
+
+------------- ADDING DATA VALIDATION TO FIREBASE -------
+
+Yes we have client side validation but we also need to validate right before the data is written b/c someone might bypass the UI and write unvalidataed data to the DB 
+
+Want clientside and server side validation 
+
+
+
+Start process inside the FB rules:
+
+1) Define another property on "$user_id" as "expenses" . This is where we are going to define any validation rules for individual expenses - setting it equal to an object and if trying to validate the individual expense we create another object with the key "$expense_id" - since this property will be dynamic use like the "$user_id"
+
+    -On this key we define validation rules in another object 
+    - FB supports a few validators - learn more at references/security/databaseRules like .isNumber() .isStinrg() etc there are operators too like add/sub and string methods/properties like .length / contains/ begins with .toUpperCase etc
+    1) Add on ".validate" and start to use the the rules .validate methods
+        A) newData.hasChildren() - newData is a variable that we have access to in the rules so we can access it to make assertions about the newData - can assert the new expense has the given children passing in an single quote list in an array of all things we want to exist
+            - "newData.hasChildren(['description', 'note','createdAt','amount']),
+        B) Now setting up validators for those individual things by naming the expense property and setting it to an object where we put the validators
+
+            1) "description": {
+                ".validate": "newData.isString() && newData.val().length > 0"
+                }
+            - This one needs to have a non empty value so need to check the length of this value to make sure its no but cant do it right on newData need to gets its .val() and check it 
+
+            2) "note": {
+                ".validate": "newData.isString()"
+            }
+
+            3)"amount": {
+                ".validate": "newData.isNumber()"
+            }
+
+            4)"createdAt": {
+                ".validate": "newData.isNumber()"
+            }
+
+            5)"$other": {
+                ".validate": false
+            }
+            - This one is to make sure that if it is not one of the ones defined up above than not allow it 
+
+2) Define another property on "$user_id" as "$other" - this is going to make sure the user doesnt add other stuff, just expenses 
+    - Here when we use the $ we are creating a 'catch-all', all other places of using the $ we are only using it ONCE (an only child) BUT when we use it AFTER other properties we are saying for "$expenses" - do this and for everything else "$other" - do this 
+    - Inside "$other" we are going to invalidate the data regardless of what it is so set it to an object with the property ".validate": and have a lot of options here true/false/and a lof other conditionals , but we are setting it to false to say her even if you are logged in as the correct user the only thing you can write is expenses
+    - can play with this in the playground by adding the correct user_id/test(or whatever) and try to read or write it shouldnt work b/c it needs to be user_id/expenses
+
+3) Now publish the changes and play around with the playground to make sure you got all edge cases covered
+
+
+
+
+
+----------------- HEROKU AUTHENTICATION -----------
+Need to enable authentification for Heroku in FB in Authentication/Sign-in method/Authroized domains so if we are deploying to a real URL like heroku we need to set that up otherwise if we do try to log in it will fail to log in
+
+Add the app's url to the authorized domain section
+
+
+
+
+*/
+
+
+/*
+
+------------- BABEL POLYFILL ------------
+
+For support in older browsers
+
+
+
 
 */

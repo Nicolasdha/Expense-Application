@@ -7,15 +7,26 @@ import getVisibleExpenses from '../selectors/expenses';
 
 export const ExpenseList = (props) => {
     return (
-        <div>
+        <div className="content-container">
+            <div className="list-header">
+                <div className="show-for-mobile">Expenses</div>
+                <div className="show-for-desktop">Expenses</div>
+                <div className="show-for-desktop">Amount</div>
+            </div>
+            <div className="list-body">
             {
                 props.expenses.length === 0 ? (
-                    <p>Please add expense!</p>) : (
-                        props.expenses.map((expense) => <ExpenseListItem key={expense.id} {...expense}/>) 
-                    )
+                    <div className = "list-item list-item--message">
+                        <span>Please add expense!</span>
+                    </div>
+                    ) : (
+                    props.expenses.map((expense) => <ExpenseListItem key={expense.id} {...expense} />)
+                )
             }
         </div>
-)};
+        </div>
+    )
+};
 
 const mapStoreToProps = (state) =>{
     return {

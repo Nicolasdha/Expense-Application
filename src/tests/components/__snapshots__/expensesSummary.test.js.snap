@@ -1,17 +1,37 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`should render the correct total 1`] = `
-<div>
-  <p>
-    Total: 
-    $1,996.95
-  </p>
-  <p>
-    From 
-    3
-     
-    expenses
-  </p>
-  <hr />
+<div
+  className="page-header"
+>
+  <div
+    className="content-container"
+  >
+    <h1
+      className="page-header__title"
+    >
+      Viewing 
+      <span>
+        3
+         
+      </span>
+      expenses
+       totaling 
+      <span>
+        $1,996.95
+      </span>
+    </h1>
+    <hr />
+    <div
+      className="page-header__actions"
+    >
+      <Link
+        className="button"
+        to="/create"
+      >
+        Add Expense
+      </Link>
+    </div>
+  </div>
 </div>
 `;

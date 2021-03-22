@@ -1,5 +1,6 @@
 import React from 'react';
 import numeral from 'numeral';
+import { Link } from 'react-router-dom'
 import { connect } from 'react-redux';
 import getVisibleExpenses from '../selectors/expenses';
 
@@ -19,10 +20,14 @@ export const ExpensesSummary = (props) => {
 
 
     return (
-    <div>
-        <p>Total: {formattedExpensesTotal}</p>
-        <p>From {props.expenseCount} {expenseWord}</p>
-        <hr></hr>
+    <div className = "page-header">
+        <div className="content-container">
+            <h1 className="page-header__title">Viewing <span>{props.expenseCount} </span>{expenseWord} totaling <span>{formattedExpensesTotal}</span></h1>
+            <hr></hr>
+            <div className = "page-header__actions">
+                <Link className="button" to='/create'>Add Expense</Link>
+            </div>
+        </div>
     </div>
     )
 };
