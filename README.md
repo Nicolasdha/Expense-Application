@@ -1,4 +1,4 @@
-# Expense-Application
+# Overhead
 
 [![tested with jest](https://img.shields.io/badge/tested_with-jest-99424f.svg)](https://github.com/facebook/jest)
 [![jest](https://jestjs.io/img/jest-badge.svg)](https://github.com/facebook/jest)
@@ -9,7 +9,7 @@
 
 
 # Introduction
-Hello! This application is meant to help track your daily, monthly, and yearly expenses! Simply create a new expense by providing a description of the expense, the amount, the date it incurred, and an optional note. You are able to quickly filter through all of your expenses by the description, or organize them by time-frame, date, or amount. Making it easy to quickly gain access to the information you need. 
+Hello! The Overhead application is meant to help track your daily, monthly, and yearly expenses! Simply create a new expense by providing a description of the expense, the amount, the date it incurred, and an optional note. You are able to quickly filter through all of your expenses by the description, or organize them by time-frame, date, or amount. Making it easy to quickly gain access to the information you need. 
 
 
 ## Table of Contents
@@ -49,7 +49,7 @@ Third-Party Libraries:
 
  This application is initalized using Heroku. Please follow this hyperlink to be taken to where this application is hosted:
  
- <a href=#/>fix me</a>
+ <a href=https://overhead-expense.herokuapp.com> Overhead Application </a>
 
 Please feel free to use this application on all mobile devices as well, it is completly optimized for all devices and desktop sizes.
 
