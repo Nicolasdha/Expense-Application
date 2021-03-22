@@ -4422,7 +4422,120 @@ Reducer will just be the pure function, as always. The big pic goal is to have t
     B) Dispatch them by store.disptch(login(user.uid)) passing in the uid as the argumnet
     and no argumnet to dispatch(logout())
     C) Check redux store dev tool to make sure the uid was set and wiped when logout
-6) Add test case for actions.logout/login AND for the reducer
+6) Add test case for actions.logout/login AND for the authReducer
+    A) authReducer = two test cases - create new file and import authReducer
+        1) test = should set uid for login - need to call the authReducer with the values it needs (state, action)
+            A) set up action as object with type: "LOGIN" and uid as random string 'abc123' - this is action object
+            B) Now need to pass to the reducer by setting variable state = to calling the reducer passing in the (state, action) to get the new state back - the state argumnet can be an empty object or nothin since it will default to empty object
+            C) Expect that uid be on the new state back make assertion expect state.uid === action.uid
+        2) test = clear uid with new action object with type:"logout" make a state variable and call to authReducer passing in state and action object.
+            A) The state passed into the authReducer HAS to have a uid: prop on it set to make sure it gets wiped clean when the authReducer gets called
+            B) then expect tht the new state does not have the uid on it and is an empty object
+    B) Actions Auth test cases - need to import {login, logout}
+        1) test = should generate login action object - can do this with a mockStore (waht i did ) or without one
+            A) Create a uid variable an action variable where we call login(uid) passing in uid then expect the action to equal an object with type:'LOGIN' and uid: uid on it
+        2) test = should generate logout action object
+            A) Create action variable calling logout() and expect action to be an object with type:"LOUTout" on it
+    
+*/
 
+
+/*
+
+----------------- PRIVATE ONLY ROUTES ---------------------
+
+Now that we are storing some authentication related info in the store we can use that info to fugre out if user should be able to nav to certain pages
+
+
+Going to do this by makign changes to appRouter. Modify how we set up routes, add a few new components that make sure to actually run that check for auth before rendering dashborad/add/edit 
+
+We are going to do the end solution first in AppRouter and then create the things we set up second
+
+1) Import a new component PrivateRoute tht atlives in the app.router dir 
+2) Goal is be able to use PrivateRoute instead of Route for those private pages SO switch out Route for the three private pages to PrivateRoute - How is this going to work? We do still need to set up and use <Route />, but it will now be handled with PrivateRoute so when we actually render the <Route /> we can determine what to do by looking at the auth status and se if user is auth for those routes or redirected to login 
+3) Create new file PrivateRoute.js in route dir and import react/route, and connect since we are going to use redux store to determine auth
+4) Export default connect component with connect and mapStoretoProps:
+    A) In mapStoreToProps return an object with isAuthenticated: which will be a boolean true if we are and false if not so we can ternary accessing state.authentification.uid (this is set from the configureStore -> authReducer - > auth Actions) OR flip TWICE !!state.authentification.uid to get the boolean b/c have undefined if not and string if we do have the value and just want boolean
+5) Create stateless functional componet: big picture goal is to create an instance of Route that we have abstracted away from AppRouter and pass props into route by spreading out {...props} in the component- doing this the app will still work with no erorr so we can see that the Route is working now just need to add the conditional logic side to it 
+    A) In the props passed into PrivateRoute destructure { isAuthenticated, component: Component,  }
+        1) { isAuthenticated } - will have the uid stored on it
+        2) { component } component was passed in as a prop in the AppRouter component={ExpenseDashboardPage}
+            - We are eventually going to be rendering the component and we want an uppercase name for that so RENAME component: Component (a common pattern)
+        3) Want to grab the rest of the props like exact,path and still pass then into <Route/> so it works correctly so need to use the REST OPERATOR 
+
+    REST OPERATOR: When created and managing objects we can use the spread operator to spread out all of the properties but can also use the REST operator (...rest) when we are destructuring objects where we define some properties and then ...rest to get a variabel called rest with all of the stuff that we did not destructure on it so all props expect isAuthenticated and component on it. The rest in ...rest is a variable so can switch it to anything ...props ...penis 
+
+            - The rest operator is what we are going to be passing down to <Route {...rest}/> and currently it is NOT getting isAuthenticated passed into it which is good b/c doenst support that but also not getting compoenent which is the component to render. 
+            - Going to fix this by defining component on our own as a prop. This is where the conditional logic will come into play of what component to render! Component prop will be equal to an arrow function that will implicitly return some JSX and inside we are going to get conditional work done 
+
+        export const PrivateRoute = ({ isAuthenticated, component: Component, ...rest}) => (
+            <Route {...rest} component = {()=>()} />
+        );        
+
+        - Now in the component CBF we pass in all of the props that were passed to Route from PrivateRoute which we want to pass thry to the individual component. Now add ternary off of isAuthenticated - if yes than want to get some JSX rendered to the screen which is an instance of Component that we renamed in the PrivateRoute props making sure that we pass it the other props  - the ones that its currently getting when we are using Route but that it is no longer getting when we define it like this (things like history) by spreading out the props that are getting passed into the CBF
+
+            IF not authenticated we need to redirect them which we can do with a component <Redirect /> (need to import from react-router-dom) that is given to us from react-router-dom. Create instance of <Redirect /> setting the to="/" prop to the login page
+
+        component = {(props)=>(
+            isAuthenticated ? (<Component {...props}/> ) : (
+                <Redirect to="/" /> 
+            )
+        )}
+
+        NOW when logged out and click the prvt pages we cannot visit them
+6) Render Header just on those private routes so not everyone can see it SO take it out of AppRouter and import into privateRoute and render <Header /> in the ternary for isAuthenticated wrapping the <Component/> in a wrapper <div>
+        isAuthenticated ? (
+                    <div>
+                        <Header />
+                        <Component {...props} />
+                    </div>
+
+*/
+
+
+
+
+/**
+ 
+
+------------- PUBLIC ONLY PAGES ----------------
+
+Still able to get to the login page when a person is logged in still (not in mine though?)
+
+Going to fix this is the same way we did the PrivateRoutes 
+
+Do exact same thing as private copy/paste code but switch up the ternary  so if they are authenticated they get redirected to the dashboard when trying to visit a public page
+
+
+Can change all path='/' to path='/dashboard' instead of this as well in all of the components where they redirect after submitting or doing something but this is a nice way to make sure
+
+
+ */
+
+
+/*
+-------- PRIVATE FIREBASE DATA PER USER ----------
+
+Each user will have a little part of the DB they can manage
+
+Useing the FB rules to secure it and splitting up all expenses that are in the root of the DB depending on user
+
+Now the users will be key in the root with object with id's as value and each id will have an expenses object 
+
+In src/actions/expenses is where we write to the ref(expenses ), we want to switch this up incorporating the userID in all async actions in this file 
+1) Change the ref('expenses') in startAddExpense to ref(`users/someUID/expenses`) with this we are crating an expenses object inside the users part of the DB  
+2) BUT we need to get the someUID somehow, so we add a second argumnet onto the returned function :    
+        return (dispatch) =>{
+    - When we have these THUNKED actions the async actions these get called with dispatch AND GETSTATE      return (dispatch, getState) =>{
+    - We can call getState to get the current state and use it right inside the function by making variable uid and setting equal to calling getState() then accessing on the state .authentication.uid which will give us the uid
+        ref(`users/${uid}/expenses`
+
+        now added in the correct place 
+3) Need to do the same thing for all other async actions in the actions file
+4) Change the test files for all of them - need to make changes to actions/expenses.test.js
+    A) Make changes to where we are writing data, currently we are writing to the root of the DB which will be a problem b/c all of the async actions we are testing expect it to be somewhere else, so need to create a fake const uid = 'thisismytestuid'
+    B) In BeforeEach()make sure that we are referenceing the database to the correct location now in `users/${uid}/expenses
+    C) Now need to change all the test cases that actually communicate with FB to check if they were CRUD'd to reference the right spot to make sure querying from the correct place we ALSO need to make sure there is a uid set in the store
+    D) Place an object in the createMockStore to be able to access it. The auth:{} object will have a property uid: uid to make sure startRemoveExpense and others have the correct stuff needed to do the test case
 
 */

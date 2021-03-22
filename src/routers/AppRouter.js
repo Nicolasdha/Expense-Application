@@ -2,13 +2,14 @@ import React from 'react';
 import { Router, Route, Switch } from'react-router-dom';
 
 import { createBrowserHistory } from 'history';
-import Header from '../components/header'
-import ExpenseDashboardPage from '../components/expenseDashboard'
-import CreateExpensePage from '../components/createExpense'
-import EditExpensePage from '../components/editExpense'
-import HelpPage from '../components/helpPage'
-import NotFoundPage from '../components/404'
-import LoginPage from '../components/LoginPage'
+import ExpenseDashboardPage from '../components/expenseDashboard';
+import CreateExpensePage from '../components/createExpense';
+import EditExpensePage from '../components/editExpense';
+import HelpPage from '../components/helpPage';
+import NotFoundPage from '../components/404';
+import LoginPage from '../components/LoginPage';
+import PrivateRoute from './PrivateRoute';
+import PublicRoute from './PublicRoute';
 
 export const history = createBrowserHistory();
 
@@ -16,14 +17,13 @@ const AppRouter = (
 
     <Router history={history}>
     <div>
-        <Header />
             <Switch>
-                <Route exact={true} path="/" component={LoginPage}/>
-                <Route path="/dashboard" component={ExpenseDashboardPage}/>
-                <Route path="/create" component={CreateExpensePage}/>
-                <Route path="/edit/:id" component={EditExpensePage}/>
-                <Route path="/help" component={HelpPage}/>
-                <Route component={NotFoundPage}/>
+                <PublicRoute exact={true} path="/" component={LoginPage}/>
+                <PrivateRoute path="/dashboard" component={ExpenseDashboardPage}/>
+                <PrivateRoute path="/create" component={CreateExpensePage}/>
+                <PrivateRoute path="/edit/:id" component={EditExpensePage}/>
+                <PublicRoute path="/help" component={HelpPage}/>
+                <PublicRoute component={NotFoundPage}/>
             </Switch>
     </div>
     </Router>
