@@ -1,11 +1,7 @@
 # Overhead - An Expense Application
 
 [![tested with jest](https://img.shields.io/badge/tested_with-jest-99424f.svg)](https://github.com/facebook/jest)
-[![jest](https://jestjs.io/img/jest-badge.svg)](https://github.com/facebook/jest)
-
-
-
-[![forthebadge](https://forthebadge.com/images/badges/made-with-javascript.svg)](https://forthebadge.com)
+[![jest](https://jestjs.io/img/jest-badge.svg)](https://github.com/facebook/jest)[![forthebadge](https://forthebadge.com/images/badges/made-with-javascript.svg)](https://forthebadge.com)
 
 
 # Introduction
@@ -32,6 +28,9 @@ Frameworks/Utilities:
 * Jest
 * Enzyme
 
+Middleware:
+* Thunk
+
 Compilers/Bundlers:
 * Webpack
 * Bable
@@ -56,6 +55,11 @@ Please feel free to use this application on all mobile devices as well, it is co
 
 ### Structure
 
+To use this application please securely login using your Google credentials. After this you will be taken to the Overhead dashboard where you will be able to start adding expenses! Both the description and amount field as mandatory in adding a new expense, and the note field is optional. From the dashboard, you are able to filter expenses by date range, and then organize them by date or amount. You are able to search through your expenses as well using the search bar.
+
+Now once you have entered some expenses the data will be stored in Google Firebase's database, so you will be able to come back and use the application whenever knowing that your expenses will be saved.
+
+You are able to achieve this all without a single page refresh! 
 
 Thank you for visiting! <br><br><br>
 
