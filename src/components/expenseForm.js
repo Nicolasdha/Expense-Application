@@ -1,5 +1,7 @@
 import React from 'react';
 import moment from'moment';
+import numeral from 'numeral';
+
 import { SingleDatePicker } from 'react-dates';
 import 'react-dates/initialize';
 
@@ -12,7 +14,7 @@ class ExpenseForm extends React.Component {
         this.state = {
             description: props.match ? props.match.description : '',
             note: props.match ? props.match.note : '',
-            amount: props.match ? (props.match.amount / 100).toString() : '',
+            amount: props.match ? (props.match.amount / 100) : '',
             createdAt: props.match ? moment(props.match.createdAt) : moment(),
             calandarFocused: false,
             error: '',
@@ -66,22 +68,23 @@ class ExpenseForm extends React.Component {
         return (
             <form className="form" onSubmit={this.onSubmit}>
                 {this.state.error && <p className="form__error">{this.state.error}</p>}
-
                 <input
                     className="text-input"
                     type="text" 
                     placeholder="Description" 
                     value = {this.state.description} 
                     onChange = {this.onDescriptionChange}
-                    autoFocus
-                />
+                    autoFocus/>
+
+                <label><span>$   </span>
                 <input 
                     type="text" 
                     className="text-input"
                     placeholder="Amount"
                     value = {this.state.amount}
                     onChange = {this.onAmountChange}
-                />
+                /></label>
+                
                 <SingleDatePicker 
                     date = {this.state.createdAt}
                     onDateChange = {this.onDateChange}

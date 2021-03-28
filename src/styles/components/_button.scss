@@ -18,3 +18,43 @@
 .button--secondary {
   background: #888;
 }
+
+.modal--button{
+  font-size: 2rem;
+  padding: $s-size $m-size;
+}
+
+.button--login{
+  margin: 0 auto;
+  // margin-bottom: 2.7rem;
+  display:flex;
+  align-items: center;
+  justify-items: center;
+  padding: 0.5rem 1.8rem;
+  color: black;
+  border-radius: 10px;
+  font-size: 1.7rem;
+  width: 100%;
+  font-family: Quicksand, sans-serif;
+  font-weight: 300;
+  background: darken($off-white, 6%);
+  opacity: .9;
+  outline: none;
+  transition: transform .4s ease;
+  transition: background .4s ease;
+  &:hover {
+    background: darken($off-white, 11%);
+    transform: scale(1.03);
+  }
+}
+
+.button__image{
+  height: 3.7rem;
+  width: 3.7rem;
+  margin-right: $m-size;
+}
+
+.button--hr{
+  margin: $m-size auto;
+  width: 25%;
+}

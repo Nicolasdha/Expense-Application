@@ -4133,6 +4133,13 @@ Create some test data in the tests/actions/expenses.test.js file. Here we are ac
 
 .forEach to loop thru expenses destructuring the argumnets to pass in for each expense. For each expense in the array we are trying to set the value of the id equal to the object with all other properties on it since that is the way we are storing it in FB. Trying to set the value of the id variable so NEED TO use bracket syntax and set it equal to an object with all of the destructured values set to their name so we can use ES6 shorthand syntax and only provide the name and not description: description just description
 
+This is related to JavaScript itself. If you have a dynamic property value whose value is stored in a variable, you must use the bracket notation to be able to access it.
+
+const key = "name"
+obj[key] // Gets the "name" property on the "obj" object (what we want)
+ 
+obj.key // Get the "key" property on the "obj" object (not what we want)
+
 dummyExpenses[id]
 
 
@@ -4646,3 +4653,550 @@ Entry: can be a string but it also can be an array of strings as multiple entry 
 
 Set it and forget it, and gives a wider range of support
 */
+
+
+/*
+
+---------- REACT HOOKS -----------
+
+React hooks tie in to our functional components (cant use state like a calss based component and cant tie into other React features like lifecycle methods)
+    - Two diff types of components - stateless functional and class based with different features but with React Hooks thats no longer the case 
+    - Now they are only called FUNCTIONAL COMPONENTS not stateless b/c its possible to use state in them 
+    - Intro to React Hooks = 0 breaking changes
+
+Hook = A function
+React Hook = A function that lets you tap into a React Feature (state, lifecycle methods)
+    - React has own hooks to use as building blocks but can also create custom hooks (own functions)  to further customize behavoir 
+    - Will first focus on the ones given to use like:
+
+useState() = This allows us to use state in stateless functional componets
+    - this function is a named export from 'react' need to import useState
+    - This is a function to call to be able to use state in functional components 
+    - For class based components our state has to be an object 
+    - useState(initialState) takes in the initialState as the first argumnet and the state can be an object BUT also can be ANYTHING
+    - returned is an array of two items:
+        1) Current state value (going to change overtime)
+        2) A function we can call to update state
+            - use by tying useState() to a vairable and calling variable
+    - With this we get state in function components and an easier way to manipulate state
+    
+Going to make counter again since we are learning hooks now 
+
+1) Create stateless functional compoenet and displaying 'the current count is 0'
+2) Create a variable array and set equal to calling useState() hook with a single argumnet - our initial state value which will just be a number - 0
+    - Returned from useState() is an array of two items (above)
+3) Change out the number 0 with a JSX reference to array referencing the 0 index b/c that is there current state is stored array[0]
+    - if update number in hook the number will change 
+4) Referencing array[0] is bad so the common thing to do is destructure the array when setting the variable count to the first thing in the array 
+    - To destructure an array start with [] and supply variable names for the things that are in that index
+5) Add button to component to change state value to +1 the count so create a button +1 and set up an onClick handler and reference the function incremnet
+6) Create the function incremnet and to be able to +1 the count we need to access the second item in the array that is returned from useState() which is a func we can use to change current state
+    A) Assign the variable setCount to the second thing in array 
+    B) Now call setCount() passing in a number - the new number is based off of the old number so we have to reference count and manipulate the count variable - count + 1
+        - This function can be an anon inline function 
+7) Can set up App.defaultProps as well and can pass in a count in the props then and if no props then it wil; use the defaultProps
+
+    Const App = ({propsCount}) =>{
+    let [count, setCount] = useState(propsCount)
+    return (
+    <div>
+        <p>The current count is {count}</p>
+        <button onClick={() => setCount(count + 1)}>+1</button>
+        <button onClick={() => setCount(count - 1)}>-1</button>
+        <button onClick={() => setCount(propsCount)}>Reset</button>
+    </div>
+    );}
+    App.defaultProps = {
+    propsCount: 15000
+    }
+    ReactDOM.render(<React.StrictMode><App propsCount={5}/></React.StrictMode>,
+    document.getElementById('root')
+    );
+
+*/
+
+
+/**
+ 
+--------------- USESTATE VS SETSTATE ----------------
+
+What if I want to track more than one thing? Do I NEED to pass in an object as the state to useState() then? No - just call useState() multiple times for the multiple things that are being tracked 
+
+For this example we want to track another state in the component - what is shown in the count: The current {text} is {count}
+
+Here we are tracking an input for {text} that will be a string
+
+const [text, setText] = useState('')
+The current {text || 'count'} is {count}
+
+Now need an input to change the {text} and in charge of showing the current value of the text state 
+    <input value = {text} onChange = {(e) => setText(text = e.target.value)}/>
+
+
+
+IF we provided an object like the old way of managing state in class based components this wouldnt work b/c when using 
+
+const [state, setState] = useState({
+    count: 0,
+    text: 'count'
+})
+
+When we try to use setState() and change the text: property it completly ERASES the count property since useState() completley replaces the old state with the new state (instead of merging all of the states like in the old classbased way) which makes it much less error prone when have multiple calls to useState for a single piece of state and allows us to break up the huge state object.
+There is a work around that is not reccomended by spreading out the rest of the state on it since it completly replaces the state :
+    <button onClick={() => setState({...state, count: count + 1 }}>+1</button>
+But thats dumb, just call useState() multiple times
+
+
+Managing an array with useState() - have an array which want user to be able to manipulate each thing on it 
+
+1) Make new NotesApp component and rendering it
+2) Make a new state with useState([]) passing in an array for the default state
+3) Destructure the array that returns from useState([]) with notes and setNotes
+4) Repeat (2)(3) but with a state variable as title and the function to change the state variable setTitle so set up an input to add a title onto the current note 
+5) Wire up a form to hold input and note
+6) Add input for title with value and onChange calling the change state function with the e.target.value
+7) Set up button to submit form 
+8) Wire up onSubmit function on form that manipulates teh notes array useing data stored inside title which will bethe title for the new note we want to add 
+    A) NEED TO preventDeault() so no page refresh 
+    B) Manipulate notes array by calling setNotes([]) passing in an array b/c notes should always be an array and 
+        1) To start we want to copy over all existing notes by spreading out all of the existing notes (...notes), then adding a new object of the new note we are adding
+        2) Call setTitle('') after setNotes to remove the title field after submission
+9) Now want to iterate over the array adding new content to the screen with each note added by using notes.map() to take our array of objects and convert/return it as an array of JSX
+    - inside notes.map((note)) return a root div with the note.title set 
+    - need to specify the key property when working with arrays in JSX so set the key prop inside the wrapper div to note.title (which isnt great but its ok)
+10) Add everyting for a note body including:
+    A) New hook for note.body
+    B) Add on body to setNotes hook
+    C) Render body text in notes.map
+    D) Create textarea for that with onSubmit handeler
+11) Create a remove note button
+    A) Create button
+    B) Create onClick handler which is an anon function that calls removeNote inside of it passing in note.title inside removeNote b/c has lexical scope to that info here
+    C) Create removeNote function inside using setNotes() and inside that using notes.filter to return an array of the notes that passed the filter test
+
+Just lke array manipulation techniques from redux with the selectors and stuff 
+
+ */
+
+
+
+/*
+
+--------------- USEEFFECT HOOK ---------------
+useEffect allows us to do seomthing in functional components - kind of like a replacement for lifecycle methods in class based components 
+
+lifecycle like - componentDidMount, componentDidUpdate, compoenetDidUnmount 
+
+Currently no way to do that stuff in functional compoenent which is what useEffect does 
+
+In counter example:
+
+useEffect() if something that we call and pass a CBF to it which is similar to a combo of componentDidMount and componentDidUpdate 
+
+useEffect(()=>{
+    console.log('use effect ran')
+})
+
+This message will print one time when app loads, and whenever someone interacts with the app pressing buttons or changing inputs each character
+
+When we render we run the functional component and the return is what get renders after that occurs the effect created with useEffect() gets triggered - similar to componentDidMount and componentDidUp - itll run once right away and run with changes to component state or props
+
+Now to do something with one of the values - itll run once right away which will run with the default state values, then itll run on all updates when count/text changes 
+
+What to do now is have the count be reflected in the documnets title that shows up in the browser tab 
+
+1) To update the title we set document.title equal to whatever we want the title to be in this cause it is the count 
+     useEffect(()=>{
+          document.title = `count is ${count}`
+    });
+
+2) Here we have synced state/props with whatever we want - here the title
+
+Notes to LS - 
+
+1) Using useEffct to save to LS b/c when component state or porps get updated we save to LS - allowing us to get similar to lifecycle methods and everything
+
+
+
+
+const NotesApp = () =>{
+
+
+  const GetJSONnotes = localStorage.getItem('notes');
+  const parsedNotes = JSON.parse(GetJSONnotes)
+  
+
+  const [notes, setNotes] = useState(parsedNotes || [])
+  const [title, setTitle] = useState('')
+  const [body, setBody] = useState('')
+
+  const addNote= (e) =>{
+    e.preventDefault();
+    setNotes([...notes, { title, body }])  ;
+    setTitle('');
+    setBody('');
+  }
+
+  const removeNote = (title) =>{
+    setNotes(notes.filter((note) => note.title !== title))
+  };
+
+ 
+  useEffect(()=>{
+    const SetJSONnotes = JSON.stringify(notes)
+    localStorage.setItem('notes', SetJSONnotes)
+    console.log(notes)
+})
+
+  return (
+  <div>
+    <h1>Notes</h1>
+    {notes.map((note)=>(
+      <div key={note.title}>
+        <h3>{note.title}</h3>
+        <p>{note.body}</p>
+        <button onClick={()=> removeNote(note.title)}>Remove note</button>
+      </div>
+    ))}
+    <p>Add note</p>
+    <form onSubmit={addNote}>
+      <input value = {title} onChange={(e)=>setTitle(e.target.value)}/>
+      <textarea value = {body} onChange = {(e) =>{setBody(e.target.value)}}/>
+      <button>Add Note</button>
+    </form>
+  </div>
+  )
+}
+
+
+
+---------- HOW TO CONDITIONALLY FIRE AN EFFECT -------------
+
+When useEffect() runs when it is not supposed to or not needed React is doing more work than it needs to be doing.
+
+The useEffect() hook allows us to specify the things we care about, the things we want to make sure when they change that it runs. This is done by passing in an array as the second argument - the CBF being the first argument and the array being the second
+
+useEffect(()=>{}, [])
+
+
+- Explicitly listing out dependencaies when we want it to run
+
+If array is left off useEffect will run anytime the props/state changes. But in the array we specify only when we WANT it to run. 
+
+useEffect(()=>{document.title=count}, [count])
+
+This will still run the initial time b/c that is when the initial count gets set up, BUT if any other props/state changes that is not count it will not fire. 
+
+
+Can set up and use useEffect as many different functions in a functional componenet as you want. This is nice b/c in a class based component we could use ComponentDidMount() lifecycle method and everything that needed to get set up went insdie of there, even if it was seperate unrealated features they were all jammed together - with useEfffect() we can just call it when you need to and each can have its own set of dependancies 
+
+Another way to work with usEffect() dependancies - run it once
+
+- Provide list of dependancies but leave the array empty - this will make it run ONCE when the compoenent mounts and never again b/c it depends on nothing meaning there is nothing out there that could ever cause that behavior to change - A complete mirror of componentDidMount()
+
+- useful when fetching or reading data 
+
+
+Should usually be explict what you want it to run with so usually provide a dependancy
+
+
+
+To change the notes app to make use of theses dependancies b/c when fetching async stuff from FBDB or something else need to break out the call to LS to get the items from LS into an async function so that code cant just live at the tope of everything to break it into a useEffect that just runs once to set the data:
+
+const NotesApp = () =>{
+  const [notes, setNotes] = useState([])
+  const [title, setTitle] = useState('')
+  const [body, setBody] = useState('')
+
+  useEffect(()=>{
+    const GetJSONnotes = localStorage.getItem('notes');
+    const parsedNotes = JSON.parse(GetJSONnotes)
+  
+    if(parsedNotes){
+      setNotes(parsedNotes)
+    }
+  },[]);
+
+  // The order matters here! the notes start at an empty array, so as it gets to the first useEffect with the localStorage.setItem, it sets the "notes" variable to an empty array at the local storage, then it gets nothing at the second useEffect.
+  
+  useEffect(()=>{
+    const SetJSONnotes = JSON.stringify(notes)
+    localStorage.setItem('notes', SetJSONnotes)
+    console.log(notes)
+}, [notes]);
+
+
+
+---- How to mimick component did unmount with useEffect()
+
+This is used for apps where components do unmount and not made up of a single component so create a seperate component for what is getting rendered to the screen with the .map()  <Note key={note.title} removeNote = {removeNote} note={note}/>
+
+
+How to clean up our effects- componentDidUnmount()
+
+1) Call useEffect(CNF) inside of Note and C.L 'setting up effect' for now
+2) This C.L will be logged every key stroke in the input b/c useEffect() is rerendering b/c not listed any dependancies
+    - The parent function to Note is having state change with in the title state and Note is being rendered to reflect those changes (other effects dont suffer from this b/c dependancies are provided )
+3) PRovide dependancy list, with [note] there is currently no way to edit a note so doesnt make any sense so leave it as empy array [] so effect should run once when it is mounted 
+4) To regester the function to clean up a given effect (same principles as componentDidUnmount but not the same), to do this:
+    A) Return a function from the useEffect() CBF so the CBF setUP the effect and the function returning below cleans it up 
+    B) This return function will fire everytime a note is removed or <Note/> gets unMounted
+5) Now we can run some code as any note is removed 
+
+ */
+
+
+
+/*
+--------------- USEREDUCER HOOK ----------------
+
+With more complex state changes we have more complex code (to manage arrray of objevts and stuff), and as app grows we add more features like this directly into the component and this isnt ideal
+
+With redux we get a simpler way to describe complex state changes by defining reducers and get the ability to not have to pass props manually around (e.g. with the <Note/> component we are passing props to use the note) just so it can use them it would be good if less props needed and still has access to data (similar to connect() function) provided by Redux - but can rereact this behavior without Redux - Redux is NOT obsolete but these tools can come in handy if you need a simpler solution then setting up Redux 
+
+To use:
+
+1) import useReducer 
+2) Need to define a reducer function before we use useReducer - this reducer function is going to look identical to the reducers we were already using with Redux - a function that is called with two argumnets (state, action) with state = array of notes and action=contains info about the actino being preformed 
+    - It is our job to return the new state based off of whatever action has been fired off 
+3) Going to create a POPULATE_NOTES action to reset the notes array and load data in from localStorage and then get things set up 
+
+    const notesReducer = (state, action) =>{
+        switch(action.type){
+            case "POPULATE_NOTES":
+                return action.notes
+            default: 
+                return state;
+        }
+    }
+4) With reducer in place will start to use it. What we are going to end up doing is replacing the   const [notes, setNotes] = useState([]) line. By calling useReducer() with two very important arguments :
+    1) Reducer function 
+    2) The initial state - which can be the same as when using useState()
+
+    useReducer(notesReducer, [])
+5) Like useState, useReducer returns an array with two important things on it:
+    1) Your state
+    2) A dispatch function
+6) Set the function call to a destructred array with the first variable being the state and the second is the dispatch function
+
+    const [notes, dispatch] = useReducer(notesReducer, [])
+    - Now have access to a dispatch to dispatch actions - since it is a variable can name it anything like notesDispatch if have multiple dispatchs
+
+7) Now have access to state and the dispatch which will dispatch an action that will run the reducer that will manipulate the state 
+8) Make changes to notesApp below all instances of setNotes change to a call to dispatch with the new action POPULATE_NOTES, REMOVE_NOTE, ADD_NOTE
+
+const notesReducer = (state, action) =>{
+  switch (action.type){
+    case 'POPULATE_NOTES':
+      return action.notes
+    case 'REMOVE_NOTE':
+      return action.notes.filter((note) => note.title !== action.title)
+    case 'ADD_NOTE':
+      return [...action.notes, {
+        title:action.title, 
+        body:action.body
+        }]
+    default: 
+      return state
+  }
+}
+
+
+
+const NotesApp = () =>{
+
+
+  const [notes, dispatch] = useReducer(notesReducer, [])
+
+  // const [notes, setNotes] = useState([])
+  const [title, setTitle] = useState('')
+  const [body, setBody] = useState('')
+
+  const addNote= (e) =>{
+    e.preventDefault();
+    // setNotes([...notes, { title, body }])  ;
+    dispatch({
+      type: 'ADD_NOTE',
+      notes,
+      title,
+      body
+
+
+    })
+    setTitle('');
+    setBody('');
+  }
+
+  const removeNote = (title) =>{
+    // setNotes(notes.filter((note) => note.title !== title))
+    dispatch({
+      type:'REMOVE_NOTE',
+      notes,
+      title
+    })
+  };
+
+  useEffect(()=>{
+    const GetJSONnotes = localStorage.getItem('notes');
+    const parsedNotes = JSON.parse(GetJSONnotes)
+  
+    if(parsedNotes){
+      // setNotes(parsedNotes)
+      dispatch({
+        type:'POPULATE_NOTES',
+        notes: parsedNotes
+      })
+    }
+  },[]);
+
+
+So if it is an easy state like title/body we can use useState() but if it is a little more complex we can use useReducer allowing us to remove the logic from the component and storing it in a seperate function making the component easier to manage and reducer easier to use 
+
+
+*/
+
+
+
+/*
+
+==---------------- CONTEXT API AND USECONTEXT HOOK --------
+
+To manage a heirarchy of components. Problem trying to solve is having components that are tighly bound passing props to each other whihch makes them hard to reuse thru the app  - redux solves this too with connect() and <Provider/>- But this is now baked right into React 
+
+So to see how contextAPI is going to help we are going to break things into different files 
+1) Reducer function and all components into new folder/file
+2) Breakout .map function into a NoteList component
+  - A componenet that does the .map function that renders each <Note/>
+  - but we are getting into a problem of passing down props from NotesApp->NoteList->Note and makes the components not reusable since the props need to come from the parent component 
+3) Breakout Form component for entering new notes
+  - With this we bring over addNote function which needs dispatch so pass in dispatch as the only prop
+
+Now have more of a complex app that is passing props between compoenents, this is what we solved using redux earlier that we can solve with the context API and useContext() hook
+
+Create the new context:
+1) New file and folder /context/notes-context.js
+  - Only thing in the file is creating the context which is a function, itll be up to the NoteApp component and other components to wire the things up
+2) import React and then create new context:
+  A) const NotesContext = React.createContext()
+    - does not require any argumnets but can provide one as the default value of the context but in this case it doesnt make sense since we dont have access to the things we want to share inside the file, all of that lives in Note.app and will fix that in just a second to get a value to actually share
+  B) Export the context so other files can use it
+    - export NotesContext as default
+    - now things are going to look similar to redux
+3) import context in NotesApp and then need to set it up as something that is getting rendered in the return statement 
+  A) <NotesContext.Provider> ... <NotesContext.Provider/>
+    - need to use this like a wrapper div
+    - With this in place we are providing the context value to any of its children and children's children children etc
+    - Need to setup the context value - can put it in the context file but normally we set it as we setup the provider 
+  B) We set up the value by providing a value={} prop - this is going to let us set the value of what we want everyone else to use 
+    - Here we want to share the notes data AND the dispatch function 
+    - Set value={} to an object with all props on it
+        value = {{
+            notes: notes,
+            dispatch: dispatch
+        }}
+    - NOW everything is being shared via the context and it is up to the individual components to extract what they need from the context
+4) Wire up actually using the context with the different apps
+    - Starting with NoteList component that need the { notes }
+5) Remove all notes and dispatch prop until we refactor removeNote and remove its prop as well 
+6) Inside NoteList need access data from the context using the useContext() hook
+    A) import useContext() and NotesContext 
+    B) call it passing in the context we are trying to use useContext(NotesContext)
+    C) What is returned from that call is the value={} that was shared in the <NotesContext.Provider/>
+    D) Set return call to a destructured variable assignmnet for notes (or dispatch if need it) const {notes, dispatch} = useContext(NotesConext)
+6) Refacor removeNote with context to the component that is actually using dispatch (note component)
+    - import evertying, Remove removeNote and all props and put in Note and then use useContext to gain access to dispatch ( this is what we saw wtih Redux is all components get access to dispatch to be able to change same data )
+
+7) Do the same for AddNoteForm for dispatch 
+
+When use the useContext hook the React context API and the useReduer hook we get a mini version of Redux to share dispatch function/data in the store 
+
+
+
+*/
+
+
+
+/*
+
+------------------- FRAGMENTS --------------------------
+
+React Fragments 
+
+This helps with the need of the wrapper <div> and not needing it. Something we want it if we want to style it as a cohesive element but sometimes it was getting in the way
+
+Now we have a choice, if we want it we keep it and if we dont want it we use a React Fragment 
+
+To use this use remove the 'div' element in the wrapper <div></div> BUT keeping the <> </> - this uses a React Fragment and removes the extra unnessesary element 
+
+In a situation you dont need/want the root wrapper div element can use Fragments to remove it
+
+
+Still can only return a single root JSX element with fragments itll just be empty but still needs to exist
+
+*/
+
+
+
+
+/*
+
+----------------- CREATING CUSTOM HOOKS -----------------
+
+The custom React hook is a function we will define which uses the built in React hooks behind the scenes  - This will make it possible to extract complex logic and to reuse the logic across components 
+
+What makes a custom hook is the functional component using the Hooks from React through a function that we set up and not directly inside the functional component
+
+In the Note component what functionality can we break out to be a custom hook? Lets say in our app a few components need to ability to know where the mouse cursor is - this changes as the user moves the mouse and always want the most up to date info so we can respond accordingly - 
+
+To impletment this feature we would need to do:
+
+1) Set up state to track the x and y mouse position (useState)
+2) Setup an event listener to listen for mouse movements (no React hook needed)
+3) Remove event listener on component unmount b/c if we didnt we would have a ton of event listeners pilling up behind the scenes wasting resources (useEffect)
+
+This code will not be reusable and will need to add this code over again in another component = duplicate code, AND the Note component really doesnt need to be concerned with the implementation details of this feature all Note needs is a reliable updated x and y position passed to it (hypotheticallty if Note needed to know the curosr position)
+
+To solve these problems we will create the custom Hook, will just add in Notes file now and break it out after functional
+
+We will name the custom hook useMousePosition - this is a naming convention 
+
+1) const useMousePosition = () ={}
+2) inside of this we are going to set up the state of the cursor position with useState and originally setting it to an object with an x:0 y:0 - this is coupled b.c the coordinates are tied together and not two seperate pieces of info
+        const [mousePosition, setPosition] = useState({x:0, y:0})
+3) Now need to return the only things that the components that are using this care about - the position of the cursor since it doesnt care about the implementation details of how the mousePosition is extrapolated
+        return mousePosition
+4) Call it in the functional component with no arguments (can take in argumnets that you use in the hook somewhere like setting the default postiion or whatever), and calling the function gives us a return value so set the function call to a variable to store the return value
+        const mousePosition = useMousePosition()
+    - This is the ONLY line we are going to add inside the functional component 
+5) Actually use the x/y values in the render call setting up <p> tags and labeling the x and y
+6) Set up an eventListener for mousemove and inside the CBF call setPosition() updating the object with the new values of the x/y mouse position
+    - This will crash the browser though 
+    - So need to remove the eventListener on unMount and only register the mousemove one time even as state changes and the function needs to rerun
+7) Use useEffect() to do this passing in the [] as the second argumnet for no dependancies
+    - NOW the position gets updated but only get one console.log, so the mouse position only gets set up once but we still get the position in real time 
+8) BUT if we remove note we get an error b/c cant update React state on an unmounted component so we need to use the cleanUpEffect on useEffect
+    - So need to clean up eventlistener when component is unmounted 
+9) return a function for cleanUp and inside use document.removeEventListener('mousemove', handleMouseMove) and for the second argumnet need to provide the function defined in memory so need to breakout the CBF into a variable and reference the variable
+
+    useEffect(()=>{
+            console.log('setting up useMousePosition')
+            
+            document.addEventListener('mousemove', onMouseMove);
+            return () =>{
+                document.removeEventListener('mousemove', onMouseMove)
+                
+                console.log('cleaning up useMousePosition')
+            }
+        }, [])
+10) Create new dir for custom hooks src/hooks/useMousePosition.js and importing it
+
+So by creating custom hooks:
+1) Makes functional components a lot simpler 
+2) Makes behavior really easy to re-use
+
+
+
+*/
+
+
+REDUX HOKS

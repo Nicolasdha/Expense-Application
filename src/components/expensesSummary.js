@@ -4,32 +4,38 @@ import { Link } from 'react-router-dom'
 import { connect } from 'react-redux';
 import getVisibleExpenses from '../selectors/expenses';
 
-export const ExpensesSummary = (props) => {
+export const ExpensesSummary = ({ visibleExpenses, expenseCount, allExpenseCount }) => {
     let expensesForTotal = [];
     let reducer = (accumulator, currentValue) => accumulator + currentValue;
 
 
-    props.visibleExpenses.map((expense) =>{
+    visibleExpenses.map((expense) =>{
         expensesForTotal.push(expense.amount / 100)
     });
 
     const total = expensesForTotal.length === 0 ? null : expensesForTotal.reduce(reducer);
-    const expenseWord = props.expenseCount === 1 ? 'expense' : 'expenses';
+    const expenseWord = expenseCount === 1 ? 'expense' : 'expenses';
     const formattedExpensesTotal = numeral(total).format('$0,0.00');
+
+    const allExpensesWord = allExpenseCount - expenseCount === 1 ? 'expense' : 'expenses'
 
 
 
     return (
-    <div className = "page-header">
-        <div className="content-container">
-            <h1 className="page-header__title">Viewing <span>{props.expenseCount} </span>{expenseWord}: <span>{formattedExpensesTotal}</span></h1>
-            <hr></hr>
-            <div className = "page-header__actions">
-                <Link className="button" to='/create'>Add Expense</Link>
+        <div className = "page-header">
+            <div className="content-container">
+                <h1 className="page-header__title">Viewing <span>{expenseCount} </span>{expenseWord}: <span>{formattedExpensesTotal}</span></h1>
+                
+            { allExpenseCount - expenseCount === 0 ? undefined : 
+                (<span className = "expensesNotShown">Not showing { allExpenseCount - expenseCount} {allExpensesWord}</span>)}
+                
+                <hr></hr>
+                <div className = "page-header__actions">
+                    <Link className="button" to='/create'>Add Expense</Link>
+                </div>
             </div>
         </div>
-    </div>
-    )
+        )
 };
 
 
@@ -38,6 +44,7 @@ const mapStoreToProps = (state) =>{
     return {
         visibleExpenses: visibleExpenses,
         expenseCount: visibleExpenses.length,
+        allExpenseCount: state.expenses.length
     }
 };
 
