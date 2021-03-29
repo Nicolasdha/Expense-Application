@@ -5,7 +5,7 @@
 
 
 # Introduction
-Hello! The Overhead application is meant to help track your daily, monthly, and yearly expenses! Simply create a new expense by providing a description of the expense, the amount, the date it incurred, and an optional note. You are able to quickly filter through all of your expenses by the description, or organize them by time-frame, date, or amount. Making it easy to quickly gain access to the information you need. 
+Hello! The Overhead application features full user-authentification through Google, Facebook, or Twitter! The database (Google Firebase) will store all information associated with the login path you choose to use making this app completely functional. It is meant to help track your daily, monthly, and yearly expenses! Simply create a new expense by providing a description of the expense, the amount, the date it incurred, and an optional note. You are able to quickly filter through all of your expenses by the description, or organize them by time-frame, date, or amount. Making it easy to quickly gain access to the information you need. 
 
 
 ## Table of Contents
