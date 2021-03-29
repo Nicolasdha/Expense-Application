@@ -44,7 +44,7 @@ export default (state = filtersReducerDefaultState, action) => {
             return {
                 ...state, 
                 modalState: undefined
-            };
+            }
         default:
             return state;
     };
