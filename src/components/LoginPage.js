@@ -5,6 +5,8 @@ import {connect} from 'react-redux'
 export const LoginPage = ({ startLoginGoogle, startLoginFacebook, startLoginTwitter }) => (
 
     <div className="box-layout">
+    <h1 className="title">O<span>verhea</span>d</h1>
+
         <div className="box-layout__background">
             <div className="box-layout__box">
                 <h1 className="box-layout__title">Overhead</h1>
