@@ -35,6 +35,16 @@ export default (state = filtersReducerDefaultState, action) => {
                 ...state,
                 endDate: action.endDate
             }
+        case 'OPEN_MODAL':
+            return {
+                ...state,
+                modalState: true
+            }
+        case 'CLOSE_MODAL':
+            return {
+                ...state, 
+                modalState: undefined
+            };
         default:
             return state;
     };

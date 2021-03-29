@@ -1,34 +1,25 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import Modal from 'react-modal'
+import RemoveModal from './modal'
 import { startEditExpense, startRemoveExpense } from '../actions/expenses';
+import { openModal, closeModal } from '../actions/filters';
 import ExpenseForm from './expenseForm'
 
 
 
 
 export class EditExpensePage extends React.Component {
-    state = {
-        modalState: undefined
-      };
-
+   
     onSubmit = (expense) =>{ 
             this.props.startEditExpense(this.props.match.id, expense)
             this.props.history.push('/')
     };
 
-    openModal = () => {
-        this.setState(()=>({ modalState: true }
-            ));
-     };
+ 
      
-     closeModal = () => {
-         this.setState(()=>({ modalState: undefined }))
-     }
 
      onRemove = () =>{
-        this.setState(()=>({ modalState: undefined }
-        ));
+        this.props.closeModal()
         this.props.startRemoveExpense( {id: this.props.match.id} )
         this.props.history.push('/')
       }
@@ -47,34 +38,8 @@ export class EditExpensePage extends React.Component {
                         match = {this.props.match}
                         onSubmit = {this.onSubmit}
                         />
-                    <button className="button button--secondary" onClick={this.openModal}>Remove Expense</button>
-                    <Modal
-                        isOpen={!!this.state.modalState} 
-                        contentLabel="Are you sure you want to remove this expense?"
-                        appElement={document.getElementById('app')}
-                        onRequestClose={this.closeModal}
-                        closeTimeoutMS={200} 
-                        className="modal"
-                    >
-
-
-
-                       <div className="modal__container">
-                           <div className="modal__titleContainer">
-                                <h3 className="modal__title">Remove expense?</h3>
-                                <div className="modal__buttonContainer">
-                                    <button className="button modal--button" onClick={this.onRemove}>Yes</button>
-                                    <button className="button modal--button" onClick={this.closeModal}>No</button>
-                                </div>
-                           </div>
-                           <div className="modal__pictureContainer">
-                                <img className="modal--img" src="/images/trashcan2.jpeg" />
-                            </div>
-                       </div>
-
-                        
-
-                    </Modal>
+                    <button className="button button--secondary" onClick={()=>{this.props.openModal()}}>Remove Expense</button>
+                  <RemoveModal onRemove={this.onRemove}/>
                 </div>
             </div>
         );
@@ -84,13 +49,16 @@ export class EditExpensePage extends React.Component {
 
 const mapStoreToProps = (state, props) =>({
     match: state.expenses.find((each)=> each.id === props.match.params.id),
+    modalState: state.filters.modalState
 });
 
 
 
 const mapDispatchToProps = (dispatch) => ({
     startEditExpense: (id, expense) => dispatch(startEditExpense(id, expense)),
-    startRemoveExpense: (id)=> dispatch(startRemoveExpense(id))
+    startRemoveExpense: (id)=> dispatch(startRemoveExpense(id)),
+    openModal: (modalState) => dispatch(openModal(modalState)),
+    closeModal: (modalState) => dispatch(closeModal(modalState)),
 });
 
 

@@ -26,3 +26,15 @@ export const setEndDate = (endDate) =>({
     type:'SET_END_DATE',
     endDate
 })
+
+
+export const openModal = (modalState) =>({
+    type: 'OPEN_MODAL',
+    modalState
+});
+
+
+export const closeModal = (modalState) =>({
+    type: 'CLOSE_MODAL',
+    modalState
+});
