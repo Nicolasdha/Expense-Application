@@ -50,7 +50,7 @@ Third-Party Libraries:
 
  This application is initalized using Heroku. Please follow this hyperlink to be taken to where this application is hosted:
  
- <a href=https://overhead-expense.herokuapp.com> Overhead Application </a>
+ <a href='https://overhead-expense.herokuapp.com'> Overhead Application </a>
 
 Please feel free to use this application on all mobile devices as well, it is completly optimized for all devices and desktop sizes.
 
